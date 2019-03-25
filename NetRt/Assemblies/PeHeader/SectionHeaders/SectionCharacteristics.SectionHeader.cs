@@ -3,7 +3,7 @@ namespace NetRt.Assemblies.PeHeader
 {
     public partial struct SectionHeader
     {
-        public enum Characteristics : uint
+        public enum SectionCharacteristics : uint
         {
             IMAGE_SCN_CNT_CODE = 0x00000020, // Section contains code.
             IMAGE_SCN_CNT_INITIALIZED_DATA = 0x00000040, // Section contains initialized data.

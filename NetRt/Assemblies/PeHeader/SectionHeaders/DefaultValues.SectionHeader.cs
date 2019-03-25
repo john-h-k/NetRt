@@ -2,22 +2,22 @@
 {
     public partial struct SectionHeader
     {
-        public enum PointerToRelocations : uint
+        public enum PointerToRelocationsValue : uint
         {
             Default = 0
         }
 
-        public enum PointerToLinenumbers : uint
+        public enum PointerToLinenumbersValue : uint
         {
             Default = 0
         }
 
-        public enum NumberOfRelocations : ushort
+        public enum NumberOfRelocationsValue : ushort
         {
             Default = 0
         }
 
-        public enum NumberOfLinenumbers : ushort
+        public enum NumberOfLinenumbersValue : ushort
         {
             Default = 0
         }

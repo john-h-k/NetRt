@@ -7,11 +7,11 @@ namespace NetRt
     {
         [Conditional("DEBUG")]
         public static void DebugLog(string message)
-            => Console.WriteLine(message);
+            => Debug.WriteLine(message);
 
         [Conditional("TRACE")]
         public static void TraceLog(string message)
-            => Console.WriteLine(message);
+            => Trace.WriteLine(message);
 
         public static void Log(string message)
             => Console.WriteLine(message);

@@ -1,4 +1,6 @@
-﻿namespace NetRt.Assemblies.PeHeader
+﻿using System.Reflection.PortableExecutable;
+
+namespace NetRt.Assemblies.PeHeader
 {
     public partial struct SectionHeader
     {
@@ -7,6 +9,10 @@
         public uint VirtualAddress;
         public uint SizeOfRawData;
         public uint PointerToRawData;
-        
+        public PointerToRelocationsValue PointerToRelocations;
+        public PointerToLinenumbersValue PointerToLinenumbers;
+        public NumberOfRelocationsValue NumberOfRelocations;
+        public NumberOfLinenumbersValue NumberOfLinenumbers;
+        public SectionCharacteristics Characteristics;
     }
 }

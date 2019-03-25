@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 
 namespace NetRt
@@ -13,7 +14,6 @@ namespace NetRt
                     "At least 1 argument (the file name) must be provided"); // TODO
 
             Logger.DebugLog($"Executing exe {args[0]}");
-
 
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace NetRt.Assemblies.PeHeader.OptionalHeader
+﻿namespace NetRt.Assemblies.PeHeader
 {
     public struct OptionalHeader
     {
