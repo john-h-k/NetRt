@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -85,6 +84,7 @@ namespace NetRt
             Span<byte> buffer = stackalloc byte[_msDosHeader.Length];
             _file.Read(buffer);
 
+            // Copy over lfanew
             _msDosHeader[0x3c + 0] = buffer[0x3c + 0];
             _msDosHeader[0x3c + 1] = buffer[0x3c + 1];
             _msDosHeader[0x3c + 2] = buffer[0x3c + 2];
@@ -112,7 +112,7 @@ namespace NetRt
             if (_file.ReadUInt64() != 0)
                 return false;
 
-
+            throw new NotImplementedException();
         }
     }
 }

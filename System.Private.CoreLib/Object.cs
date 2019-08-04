@@ -9,25 +9,19 @@ namespace System
 
         }
 
-        ~Object()
-        {
+        // Let's not have a finalizer so no one else can override them :when:
 
-        }
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern Type GetType();
 
-
-        public Type GetType()
-        {
-            throw null;
-        }
-
-        public bool Equals(object obj)
+        public virtual bool Equals(object obj)
         {
             return this == obj;
         }
 
         public virtual int GetHashCode()
         {
-            throw null; // TODO
+            return RuntimeHelpers.GetHashCode(this);
         }
 
         public virtual string ToString()
@@ -40,10 +34,9 @@ namespace System
             return left == right;
         }
 
-        protected object MemberwiseClone()
-        {
-            throw null;
-        }
+
+        [Intrinsic]
+        protected extern object MemberwiseClone();
     }
         
 }
