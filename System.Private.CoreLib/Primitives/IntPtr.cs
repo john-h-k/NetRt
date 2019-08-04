@@ -114,6 +114,7 @@ namespace System
 
         //[Intrinsic]
         //public static explicit operator IntPtr(int value) => new IntPtr(value);
+        
         [Intrinsic]
         public static explicit operator IntPtr(long value) => new IntPtr(value);
         [Intrinsic]

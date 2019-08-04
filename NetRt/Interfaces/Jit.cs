@@ -7,6 +7,6 @@ namespace NetRt.Interfaces
     {
         public static Jit Instance { get; set; }
 
-        public abstract unsafe byte* JitMethod(MethodDef method, byte* il);
+        public abstract unsafe byte* JitMethod(MethodDef method, ref byte il);
     }
 }

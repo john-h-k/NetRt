@@ -5,11 +5,12 @@ using NetRt.Interfaces;
 
 namespace NetJit
 {
-    public sealed class Compiler : Jit
+    public sealed unsafe partial class Compiler : Jit
     {
-        public override unsafe byte* JitMethod(MethodDef method, byte* il)
+        private Memory<byte> _methodBytes;
+        public override byte* JitMethod(MethodDef method, ref byte il)
         {
-            throw new NotImplementedException();
+            _methodBytes = ScanIlForEnd(ref il);
         }
     }
 }
