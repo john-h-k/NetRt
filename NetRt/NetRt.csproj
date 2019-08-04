@@ -41,8 +41,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
-    <ProjectReference Include="..\NetInterface\NetInterface.csproj" />
-    <ProjectReference Include="..\NetJit\NetJit.csproj" />
     <ProjectReference Include="..\PAL\PAL.csproj" />
   </ItemGroup>
 

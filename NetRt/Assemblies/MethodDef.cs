@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace NetInterface
+namespace NetRt.Assemblies
 {
     using Rva = UInt32;
     public readonly struct MethodDef

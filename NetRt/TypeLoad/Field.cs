@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 
 namespace NetRt.TypeLoad
 {
@@ -14,5 +15,11 @@ namespace NetRt.TypeLoad
         public FieldAttributes Flags { get; }
         public string Name { get; }
         public uint Signature { get; }
+
+        public FieldSig ReadSignature()
+        {
+            double x = double.MaxValue;
+            ;
+        }
     }
 }

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
+using System.Collections.Generic;
 using NetRt.Assemblies;
 using NetRt.Assemblies.Heaps;
 using NetRt.TypeLoad.TypeSystem;
+using PAL;
 
 namespace NetRt.TypeLoad
 {
@@ -13,6 +16,7 @@ namespace NetRt.TypeLoad
         private readonly MetadataReader _reader;
         private readonly uint _typeTableStart;
         private readonly TableHeap.TableInfo _typeTableInfo;
+        private readonly Dictionary<TypeDef, TypeDefinition> _loadedTypes = new Dictionary<TypeDef, TypeDefinition>();
 
         public TypeLoader(CliImage image, Stream stream)
         {
@@ -28,14 +32,27 @@ namespace NetRt.TypeLoad
                 _typeTableInfo.Offset;
         }
 
-        public TypeDefinition LoadType(TypeDef typeDef)
+        public TypeDefinition EnsureTypeLoaded(TypeDef typeDef)
         {
-            throw new NotImplementedException();
-
-            //LoadStaticFields(typeDef);
+            if (_loadedTypes.TryGetValue(typeDef, out TypeDefinition type)) return type;
+            LoadStaticFields(typeDef);
             //GenerateMethodTable(typeDef);
             //if (!typeDef.HasBeforefieldinit)
             //    typeDef.RunCctor();
+
+            throw new NotImplementedException();
+        }
+
+        private void LoadStaticFields(TypeDef typeDef)
+        {
+            foreach (Field field in _reader.EnumerateFields(typeDef))
+            {
+                if (!field.Flags.HasFlag(FieldAttributes.Static)) continue;
+
+                TypeDefinition fieldType = EnsureTypeLoaded(field.ReadSignature().FieldType);
+                MallocBlock<byte> fieldData = MallocBlock<byte>.Allocate(fieldType.Size);
+
+            }
         }
 
         public TypeDef ResolveTypeRef(TypeRef typeRef)

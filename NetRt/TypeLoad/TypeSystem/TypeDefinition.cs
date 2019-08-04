@@ -1,9 +1,11 @@
 ﻿using NetInterface;
+using NetRt.Assemblies;
 
 namespace NetRt.TypeLoad.TypeSystem
 {
     public abstract class TypeDefinition
     {
+        public abstract int Size { get; }
         public abstract Field[] Fields { get; }
         public abstract MethodDef[] Methods { get; }
 

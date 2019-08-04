@@ -3,10 +3,11 @@
 namespace System
 {
 #if BIT64
-    using nint = System.Int64;
+    using nint = Int64;
 #else
-    using nint = System.Int32;
+    using nint = Int32;
 #endif
+
     public readonly struct IntPtr
     {
         private readonly nint _value;
@@ -111,10 +112,12 @@ namespace System
             return new IntPtr(left % right._value);
         }
 
-        [Intrinsic]
-        public static explicit operator IntPtr(int value) => new IntPtr(value);
+        //[Intrinsic]
+        //public static explicit operator IntPtr(int value) => new IntPtr(value);
         [Intrinsic]
         public static explicit operator IntPtr(long value) => new IntPtr(value);
+        [Intrinsic]
+        public static implicit operator IntPtr(int value) => new IntPtr(value);
 
         public override int GetHashCode()
         {

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using NetRt.Assemblies;
 
 namespace NetRt.Common
 {
@@ -20,11 +19,6 @@ namespace NetRt.Common
             Span<byte> buff = Unsafe.SizeOf<T>() <= 1024 ? stackalloc byte[Unsafe.SizeOf<T>()] : new byte[Unsafe.SizeOf<T>()];
             stream.Read(buff);
             return Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buff));
-        }
-
-        public static DataDirectory ReadDataDirectory(this Stream stream)
-        {
-            return new DataDirectory(stream.Read<uint>(), stream.Read<int>());
         }
 
         public static void Skip(this Stream stream, int byteCount)

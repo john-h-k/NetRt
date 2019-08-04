@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NetInterface\NetInterface.csproj" />
+    <ProjectReference Include="..\NetRt\NetRt.csproj" />
   </ItemGroup>
 
 </Project>
