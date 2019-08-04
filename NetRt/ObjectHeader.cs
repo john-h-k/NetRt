@@ -56,11 +56,11 @@ namespace NetRt
         {
             if (value)
             {
-                _value |= HasFinalizerRunMask;
+                _value |= mask;
             }
             else
             {
-                _value &= ~HasFinalizerRunMask;
+                _value &= ~mask;
             }
         }
 
