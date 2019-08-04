@@ -38,7 +38,8 @@ namespace NetJit.Representations
         PopR4 = 1 << 6,
         PopR8 = 1 << 7,
         PopRef = 1 << 8,
-        VarPop = 1 << 9
+        VarPop = 1 << 9,
+        Pop2I = 1 << 10
     }
 
     [Flags]
@@ -53,7 +54,7 @@ namespace NetJit.Representations
         PushI8 = 1 << 6,
         PushR4 = 1 << 7,
         PushR8 = 1 << 8,
-        VarPush = 1 << 9
+        VarPush = 1 << 9,
     }
 
     public enum OperandParams
@@ -153,7 +154,7 @@ namespace NetJit.Representations
             OpCode CEE_LDC_R4 = OpCode.Create("ldc.r4", Pop0, PushR4, ShortInlineR, IPrimitive, 1, 0xFF, 0x22, NEXT);
             OpCode CEE_LDC_R8 = OpCode.Create("ldc.r8", Pop0, PushR8, InlineR, IPrimitive, 1, 0xFF, 0x23, NEXT);
             OpCode CEE_UNUSED49 = OpCode.Create("unused", Pop0, Push0, InlineNone, IPrimitive, 1, 0xFF, 0x24, NEXT);
-            OpCode CEE_DUP = OpCode.Create("dup", Pop1, Push1 + Push1, InlineNone, IPrimitive, 1, 0xFF, 0x25, NEXT);
+            OpCode CEE_DUP = OpCode.Create("dup", Pop1, Push2, InlineNone, IPrimitive, 1, 0xFF, 0x25, NEXT);
             OpCode CEE_POP = OpCode.Create("pop", Pop1, Push0, InlineNone, IPrimitive, 1, 0xFF, 0x26, NEXT);
             OpCode CEE_JMP = OpCode.Create("jmp", Pop0, Push0, InlineMethod, IPrimitive, 1, 0xFF, 0x27, CALL);
             OpCode CEE_CALL = OpCode.Create("call", VarPop, VarPush, InlineMethod, IPrimitive, 1, 0xFF, 0x28, CALL);
@@ -162,29 +163,29 @@ namespace NetJit.Representations
             OpCode CEE_BR_S = OpCode.Create("br.s", Pop0, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x2B, BRANCH);
             OpCode CEE_BRFALSE_S = OpCode.Create("brfalse.s", PopI, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x2C, COND_BRANCH);
             OpCode CEE_BRTRUE_S = OpCode.Create("brtrue.s", PopI, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x2D, COND_BRANCH);
-            OpCode CEE_BEQ_S = OpCode.Create("beq.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x2E, COND_BRANCH);
-            OpCode CEE_BGE_S = OpCode.Create("bge.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x2F, COND_BRANCH);
-            OpCode CEE_BGT_S = OpCode.Create("bgt.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x30, COND_BRANCH);
-            OpCode CEE_BLE_S = OpCode.Create("ble.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x31, COND_BRANCH);
-            OpCode CEE_BLT_S = OpCode.Create("blt.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x32, COND_BRANCH);
-            OpCode CEE_BNE_UN_S = OpCode.Create("bne.un.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x33, COND_BRANCH);
-            OpCode CEE_BGE_UN_S = OpCode.Create("bge.un.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x34, COND_BRANCH);
-            OpCode CEE_BGT_UN_S = OpCode.Create("bgt.un.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x35, COND_BRANCH);
-            OpCode CEE_BLE_UN_S = OpCode.Create("ble.un.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x36, COND_BRANCH);
-            OpCode CEE_BLT_UN_S = OpCode.Create("blt.un.s", Pop1 + Pop1, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x37, COND_BRANCH);
+            OpCode CEE_BEQ_S = OpCode.Create("beq.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x2E, COND_BRANCH);
+            OpCode CEE_BGE_S = OpCode.Create("bge.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x2F, COND_BRANCH);
+            OpCode CEE_BGT_S = OpCode.Create("bgt.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x30, COND_BRANCH);
+            OpCode CEE_BLE_S = OpCode.Create("ble.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x31, COND_BRANCH);
+            OpCode CEE_BLT_S = OpCode.Create("blt.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x32, COND_BRANCH);
+            OpCode CEE_BNE_UN_S = OpCode.Create("bne.un.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x33, COND_BRANCH);
+            OpCode CEE_BGE_UN_S = OpCode.Create("bge.un.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x34, COND_BRANCH);
+            OpCode CEE_BGT_UN_S = OpCode.Create("bgt.un.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x35, COND_BRANCH);
+            OpCode CEE_BLE_UN_S = OpCode.Create("ble.un.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x36, COND_BRANCH);
+            OpCode CEE_BLT_UN_S = OpCode.Create("blt.un.s", Pop2, Push0, ShortInlineBrTarget, IMacro, 1, 0xFF, 0x37, COND_BRANCH);
             OpCode CEE_BR = OpCode.Create("br", Pop0, Push0, InlineBrTarget, IPrimitive, 1, 0xFF, 0x38, BRANCH);
             OpCode CEE_BRFALSE = OpCode.Create("brfalse", PopI, Push0, InlineBrTarget, IPrimitive, 1, 0xFF, 0x39, COND_BRANCH);
             OpCode CEE_BRTRUE = OpCode.Create("brtrue", PopI, Push0, InlineBrTarget, IPrimitive, 1, 0xFF, 0x3A, COND_BRANCH);
-            OpCode CEE_BEQ = OpCode.Create("beq", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3B, COND_BRANCH);
-            OpCode CEE_BGE = OpCode.Create("bge", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3C, COND_BRANCH);
-            OpCode CEE_BGT = OpCode.Create("bgt", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3D, COND_BRANCH);
-            OpCode CEE_BLE = OpCode.Create("ble", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3E, COND_BRANCH);
-            OpCode CEE_BLT = OpCode.Create("blt", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3F, COND_BRANCH);
-            OpCode CEE_BNE_UN = OpCode.Create("bne.un", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x40, COND_BRANCH);
-            OpCode CEE_BGE_UN = OpCode.Create("bge.un", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x41, COND_BRANCH);
-            OpCode CEE_BGT_UN = OpCode.Create("bgt.un", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x42, COND_BRANCH);
-            OpCode CEE_BLE_UN = OpCode.Create("ble.un", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x43, COND_BRANCH);
-            OpCode CEE_BLT_UN = OpCode.Create("blt.un", Pop1 + Pop1, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x44, COND_BRANCH);
+            OpCode CEE_BEQ = OpCode.Create("beq", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3B, COND_BRANCH);
+            OpCode CEE_BGE = OpCode.Create("bge", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3C, COND_BRANCH);
+            OpCode CEE_BGT = OpCode.Create("bgt", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3D, COND_BRANCH);
+            OpCode CEE_BLE = OpCode.Create("ble", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3E, COND_BRANCH);
+            OpCode CEE_BLT = OpCode.Create("blt", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x3F, COND_BRANCH);
+            OpCode CEE_BNE_UN = OpCode.Create("bne.un", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x40, COND_BRANCH);
+            OpCode CEE_BGE_UN = OpCode.Create("bge.un", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x41, COND_BRANCH);
+            OpCode CEE_BGT_UN = OpCode.Create("bgt.un", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x42, COND_BRANCH);
+            OpCode CEE_BLE_UN = OpCode.Create("ble.un", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x43, COND_BRANCH);
+            OpCode CEE_BLT_UN = OpCode.Create("blt.un", Pop2, Push0, InlineBrTarget, IMacro, 1, 0xFF, 0x44, COND_BRANCH);
             OpCode CEE_SWITCH = OpCode.Create("switch", PopI, Push0, InlineSwitch, IPrimitive, 1, 0xFF, 0x45, COND_BRANCH);
             OpCode CEE_LDIND_I1 = OpCode.Create("ldind.i1", PopI, PushI, InlineNone, IPrimitive, 1, 0xFF, 0x46, NEXT);
             OpCode CEE_LDIND_U1 = OpCode.Create("ldind.u1", PopI, PushI, InlineNone, IPrimitive, 1, 0xFF, 0x47, NEXT);
@@ -204,19 +205,19 @@ namespace NetJit.Representations
             OpCode CEE_STIND_I8 = OpCode.Create("stind.i8", PopI + PopI8, Push0, InlineNone, IPrimitive, 1, 0xFF, 0x55, NEXT);
             OpCode CEE_STIND_R4 = OpCode.Create("stind.r4", PopI + PopR4, Push0, InlineNone, IPrimitive, 1, 0xFF, 0x56, NEXT);
             OpCode CEE_STIND_R8 = OpCode.Create("stind.r8", PopI + PopR8, Push0, InlineNone, IPrimitive, 1, 0xFF, 0x57, NEXT);
-            OpCode CEE_ADD = OpCode.Create("add", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x58, NEXT);
-            OpCode CEE_SUB = OpCode.Create("sub", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x59, NEXT);
-            OpCode CEE_MUL = OpCode.Create("mul", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5A, NEXT);
-            OpCode CEE_DIV = OpCode.Create("div", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5B, NEXT);
-            OpCode CEE_DIV_UN = OpCode.Create("div.un", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5C, NEXT);
-            OpCode CEE_REM = OpCode.Create("rem", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5D, NEXT);
-            OpCode CEE_REM_UN = OpCode.Create("rem.un", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5E, NEXT);
-            OpCode CEE_AND = OpCode.Create("and", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5F, NEXT);
-            OpCode CEE_OR = OpCode.Create("or", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x60, NEXT);
-            OpCode CEE_XOR = OpCode.Create("xor", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x61, NEXT);
-            OpCode CEE_SHL = OpCode.Create("shl", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x62, NEXT);
-            OpCode CEE_SHR = OpCode.Create("shr", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x63, NEXT);
-            OpCode CEE_SHR_UN = OpCode.Create("shr.un", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x64, NEXT);
+            OpCode CEE_ADD = OpCode.Create("add", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x58, NEXT);
+            OpCode CEE_SUB = OpCode.Create("sub", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x59, NEXT);
+            OpCode CEE_MUL = OpCode.Create("mul", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5A, NEXT);
+            OpCode CEE_DIV = OpCode.Create("div", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5B, NEXT);
+            OpCode CEE_DIV_UN = OpCode.Create("div.un", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5C, NEXT);
+            OpCode CEE_REM = OpCode.Create("rem", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5D, NEXT);
+            OpCode CEE_REM_UN = OpCode.Create("rem.un", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5E, NEXT);
+            OpCode CEE_AND = OpCode.Create("and", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x5F, NEXT);
+            OpCode CEE_OR = OpCode.Create("or", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x60, NEXT);
+            OpCode CEE_XOR = OpCode.Create("xor", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x61, NEXT);
+            OpCode CEE_SHL = OpCode.Create("shl", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x62, NEXT);
+            OpCode CEE_SHR = OpCode.Create("shr", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x63, NEXT);
+            OpCode CEE_SHR_UN = OpCode.Create("shr.un", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x64, NEXT);
             OpCode CEE_NEG = OpCode.Create("neg", Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x65, NEXT);
             OpCode CEE_NOT = OpCode.Create("not", Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0x66, NEXT);
             OpCode CEE_CONV_I1 = OpCode.Create("conv.i1", Pop1, PushI, InlineNone, IPrimitive, 1, 0xFF, 0x67, NEXT);
@@ -331,12 +332,12 @@ namespace NetJit.Representations
             OpCode CEE_CONV_I = OpCode.Create("conv.i", Pop1, PushI, InlineNone, IPrimitive, 1, 0xFF, 0xD3, NEXT);
             OpCode CEE_CONV_OVF_I = OpCode.Create("conv.ovf.i", Pop1, PushI, InlineNone, IPrimitive, 1, 0xFF, 0xD4, NEXT);
             OpCode CEE_CONV_OVF_U = OpCode.Create("conv.ovf.u", Pop1, PushI, InlineNone, IPrimitive, 1, 0xFF, 0xD5, NEXT);
-            OpCode CEE_ADD_OVF = OpCode.Create("add.ovf", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xD6, NEXT);
-            OpCode CEE_ADD_OVF_UN = OpCode.Create("add.ovf.un", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xD7, NEXT);
-            OpCode CEE_MUL_OVF = OpCode.Create("mul.ovf", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xD8, NEXT);
-            OpCode CEE_MUL_OVF_UN = OpCode.Create("mul.ovf.un", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xD9, NEXT);
-            OpCode CEE_SUB_OVF = OpCode.Create("sub.ovf", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xDA, NEXT);
-            OpCode CEE_SUB_OVF_UN = OpCode.Create("sub.ovf.un", Pop1 + Pop1, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xDB, NEXT);
+            OpCode CEE_ADD_OVF = OpCode.Create("add.ovf", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xD6, NEXT);
+            OpCode CEE_ADD_OVF_UN = OpCode.Create("add.ovf.un", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xD7, NEXT);
+            OpCode CEE_MUL_OVF = OpCode.Create("mul.ovf", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xD8, NEXT);
+            OpCode CEE_MUL_OVF_UN = OpCode.Create("mul.ovf.un", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xD9, NEXT);
+            OpCode CEE_SUB_OVF = OpCode.Create("sub.ovf", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xDA, NEXT);
+            OpCode CEE_SUB_OVF_UN = OpCode.Create("sub.ovf.un", Pop2, Push1, InlineNone, IPrimitive, 1, 0xFF, 0xDB, NEXT);
             OpCode CEE_ENDFINALLY = OpCode.Create("endfinally", Pop0, Push0, InlineNone, IPrimitive, 1, 0xFF, 0xDC, RETURN);
             OpCode CEE_LEAVE = OpCode.Create("leave", Pop0, Push0, InlineBrTarget, IPrimitive, 1, 0xFF, 0xDD, BRANCH);
             OpCode CEE_LEAVE_S = OpCode.Create("leave.s", Pop0, Push0, ShortInlineBrTarget, IPrimitive, 1, 0xFF, 0xDE, BRANCH);
@@ -375,11 +376,11 @@ namespace NetJit.Representations
             OpCode CEE_PREFIXREF = OpCode.Create("prefixref", Pop0, Push0, InlineNone, IInternal, 1, 0xFF, 0xFF, META);
 
             OpCode CEE_ARGLIST = OpCode.Create("arglist", Pop0, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x00, NEXT);
-            OpCode CEE_CEQ = OpCode.Create("ceq", Pop1 + Pop1, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x01, NEXT);
-            OpCode CEE_CGT = OpCode.Create("cgt", Pop1 + Pop1, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x02, NEXT);
-            OpCode CEE_CGT_UN = OpCode.Create("cgt.un", Pop1 + Pop1, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x03, NEXT);
-            OpCode CEE_CLT = OpCode.Create("clt", Pop1 + Pop1, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x04, NEXT);
-            OpCode CEE_CLT_UN = OpCode.Create("clt.un", Pop1 + Pop1, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x05, NEXT);
+            OpCode CEE_CEQ = OpCode.Create("ceq", Pop2, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x01, NEXT);
+            OpCode CEE_CGT = OpCode.Create("cgt", Pop2, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x02, NEXT);
+            OpCode CEE_CGT_UN = OpCode.Create("cgt.un", Pop2, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x03, NEXT);
+            OpCode CEE_CLT = OpCode.Create("clt", Pop2, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x04, NEXT);
+            OpCode CEE_CLT_UN = OpCode.Create("clt.un", Pop2, PushI, InlineNone, IPrimitive, 2, 0xFE, 0x05, NEXT);
             OpCode CEE_LDFTN = OpCode.Create("ldftn", Pop0, PushI, InlineMethod, IPrimitive, 2, 0xFE, 0x06, NEXT);
             OpCode CEE_LDVIRTFTN = OpCode.Create("ldvirtftn", PopRef, PushI, InlineMethod, IPrimitive, 2, 0xFE, 0x07, NEXT);
             OpCode CEE_UNUSED56 = OpCode.Create("unused", Pop0, Push0, InlineNone, IPrimitive, 2, 0xFE, 0x08, NEXT);
