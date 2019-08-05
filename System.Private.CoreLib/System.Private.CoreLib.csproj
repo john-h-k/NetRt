@@ -12,7 +12,7 @@
     <NoCompilerStandardLib>true</NoCompilerStandardLib>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
     <RootNamespace>System</RootNamespace>
-
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
 

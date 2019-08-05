@@ -12,11 +12,15 @@ namespace NetJit
         {
             Instance = new Compiler();
         }
-
-        private Memory<byte> _il;
+        
+        private Memory<byte> _ilMemory;
+        private Span<byte> Il => _ilMemory.Span;
         public override byte* JitMethod(MethodInformation method)
         {
-            _il = method.Il;
+            _ilMemory = method.Il;
+            _instructionReader = new InstructionReader(_ilMemory);
+            CreateBasicBlocks();
+            throw new NotImplementedException();
         }
     }
 }

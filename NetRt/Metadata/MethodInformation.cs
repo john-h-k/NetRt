@@ -15,12 +15,12 @@ namespace NetRt.Metadata
         {
             RawMethodDef = rawMethodDef;
             Header = methodHeader;
-            OwnedIl = il;
+            _ownedIl = il;
             MethodDataSection = methodDataSection;
         }
 
 
-        public Assemblies.MethodDef RawMethodDef { get; }
+        public MethodDef RawMethodDef { get; }
         public uint Rva => RawMethodDef.Rva;
         public MethodAttributes Flags => RawMethodDef.Flags;
         public MethodImplOptions ImplFlags => RawMethodDef.ImplFlags;
@@ -29,8 +29,8 @@ namespace NetRt.Metadata
         public string Name => RawMethodDef.Name;
         public bool HasBody => Rva != 0;
         public MethodHeader Header { get; }
-        public Memory<byte> Il => OwnedIl.Memory;
-        private readonly IMemoryOwner<byte> OwnedIl;
+        public Memory<byte> Il => _ownedIl.Memory;
+        private readonly IMemoryOwner<byte> _ownedIl;
 
         public MethodDataSection[] MethodDataSection { get; set; }
 
@@ -38,7 +38,7 @@ namespace NetRt.Metadata
 
         public void Dispose()
         {
-            Il?.Dispose();
+            _ownedIl?.Dispose();
         }
     }
 }

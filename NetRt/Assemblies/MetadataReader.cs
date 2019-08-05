@@ -39,6 +39,25 @@ namespace NetRt.Assemblies
 
         public static Rva TokenToRid(Rva rva) => rva & 0x00ffffff;
 
+        public uint RvaToFileAddress(Rva rva)
+        {
+            Section section = GetSectionAtVirtualAddress(rva);
+
+            return (rva + section.PointerToRawData) - section.VirtualAddress;
+        }
+
+        private Section GetSectionAtVirtualAddress(Rva rva)
+        {
+            Section[] sections = _image.Sections;
+            foreach (Section section in sections)
+            {
+                if (rva >= section.VirtualAddress && rva < section.VirtualAddress + section.SizeOfRawData)
+                    return section;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(rva));
+        }
+
         public void GotoTable(Table table)
         {
             TableInfo tableInfo = _image.TableHeap[table];
@@ -50,7 +69,7 @@ namespace NetRt.Assemblies
 
         public void GotoRva(Rva rva)
         {
-            _stream.Position = _image.MetadataSection.PointerToRawData + rva;
+            _stream.Position = RvaToFileAddress(rva);
         }
 
         public void GotoTable(Table table, Rva row)

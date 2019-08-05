@@ -11,7 +11,7 @@ namespace NetJit
     public partial class Compiler
     {
         private BasicBlock _first;
-        private InstructionReader _instructionReader = new InstructionReader();
+        private InstructionReader _instructionReader;
 
         public void CreateBasicBlocks()
         {
@@ -19,11 +19,11 @@ namespace NetJit
 
             var prevPosition = 0;
 
-            var cur = new BasicBlock(previous: null, next: null, _il.Slice(prevPosition, boundaries[0]));
+            var cur = new BasicBlock(previous: null, next: null, _ilMemory.Slice(prevPosition, boundaries[0]));
             _first = cur;
             for (var i = 1; i < boundaries.Count; i++)
             {
-                cur = new BasicBlock(previous: cur, next: null, _il.Slice(prevPosition, boundaries[i]));
+                cur = new BasicBlock(previous: cur, next: null, _ilMemory.Slice(prevPosition, boundaries[i]));
                 prevPosition = boundaries[i];
             }
         }
@@ -32,17 +32,21 @@ namespace NetJit
         {
             var boundaries = new List<int>();
             // We mark the boundaries where non-exceptional control flow occurs, and divide the blocks there
-            Instruction instr = _instructionReader.ReadInstruction();
-            if (IsBasicBlockBoundary(instr.OpCode))
+
+            while (true)
             {
-                boundaries.Add(_instructionReader.Position);
-                if (instr.OpCode.IsBranch)
+                Instruction instr = _instructionReader.ReadInstruction();
+                if (IsBasicBlockBoundary(instr.OpCode))
                 {
-                    _instructionReader.FollowBranch(instr);
-                }
-                else
-                {
-                    return boundaries;
+                    boundaries.Add(_instructionReader.Position);
+                    if (instr.OpCode.IsBranch)
+                    {
+                        //_instructionReader.FollowBranch(instr);
+                    }
+                    else if (instr.OpCode.IsEndOfMethod)
+                    {
+                        break;
+                    }
                 }
             }
 

@@ -17,7 +17,9 @@
  *****************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using static NetJit.Representations.PopBehaviour;
 using static NetJit.Representations.PushBehaviour;
 using static NetJit.Representations.OperandParams;
@@ -123,6 +125,7 @@ namespace NetJit.Representations
     {
         public static bool IsBasicBlockBoundary(OpCode op) => op.ControlFlowKind == Return || /* op.IsBranch */ op.IsUnconditionalBranch;
 
+        public static readonly Dictionary<(byte first, byte second), OpCode> OpCodeMap = new Dictionary<(byte first, byte second), OpCode>();
         public static int GetSizeForParamKind(OperandParams operandParams)
         {
             const int metadataTokenSz = 4;

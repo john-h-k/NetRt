@@ -3,15 +3,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text.Json.Serialization;
-using NetInterface;
 using NetRt.Assemblies;
 using NetRt.Common;
 using NetRt.Interfaces;
 using NetRt.TypeLoad;
-using Assembly = NetRt.Assemblies.Assembly;
 
 namespace NetRt
 {
@@ -24,8 +19,7 @@ namespace NetRt
                 throw new Exception("fuck off and get a proper architecture jeez");
 
 #if DEBUG
-            args = new string[1];
-            args[0] = Console.ReadLine();
+            args = new[] { @"C:\Users\johnk\source\repos\HelloWorld\HelloWorld\bin\Debug\netcoreapp3.0\HelloWorld.dll" };
 #else
             if (args is null || args.Length == 0)
             {
@@ -36,8 +30,6 @@ namespace NetRt
 
             Debug.WriteLine($"Executing exe \"{args[0]}\"");
 
-
-
             try
             {
                 using var file = new FileStream(args[0], FileMode.Open, FileAccess.Read, FileShare.None);
@@ -46,9 +38,8 @@ namespace NetRt
                 var reader = new CliImage.CliImageReader();
                 reader.CreateFromStream(new Disposable<Stream>(mem, owned: true), args[0]);
                 var metadata = new MetadataReader(reader.Image, mem);
-                var loader = new TypeLoader(reader.Image, mem);
-                byte[] buff = mem.GetBuffer();
-                Jit.JitMethod(metadata.ReadMethodDef(reader.Image.EntryPointToken), )
+                var method = metadata.ReadMethodDef(reader.Image.EntryPointToken);
+                Jit.JitMethod(metadata.ReadMethod(method));
             }
             catch (IOException e)
             {
@@ -66,7 +57,7 @@ namespace NetRt
 #if DEBUG
             const bool debug = true;
 #else
-                bool debug = false;
+            const bool debug = false;
 #endif
             System.Reflection.Assembly jit = System.Reflection.Assembly.LoadFile(
                 $@"C:\Users\johnk\source\repos\NetRt\NetJit\bin\{(debug ? "Debug" : "Release")}\netcoreapp3.0\NetJit.dll");

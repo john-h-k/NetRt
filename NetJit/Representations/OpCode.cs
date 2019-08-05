@@ -10,6 +10,8 @@ namespace NetJit.Representations
 {
     public readonly struct OpCode
     {
+        
+
         public bool Equals(OpCode other)
         {
             return string.Equals(Alias, other.Alias) &&
@@ -61,7 +63,7 @@ namespace NetJit.Representations
                 controlFlowKind
             );
 
-            _opCodes[(firstByte, secondByte)] = opCode;
+            OpCodeMap[(firstByte, secondByte)] = opCode;
 
             return opCode;
         }
@@ -70,8 +72,6 @@ namespace NetJit.Representations
             left.FirstByte == right.FirstByte && left.SecondByte == right.SecondByte;
 
         public static bool operator !=(OpCode left, OpCode right) => !(left == right);
-
-        private static readonly Dictionary<(byte first, byte second), OpCode> _opCodes = new Dictionary<(byte first, byte second), OpCode>();
 
         public static OpCode ReadOpCode(ref byte il)
         {
@@ -89,7 +89,7 @@ namespace NetJit.Representations
                 first = 0xFF;
             }
 
-            return _opCodes[(first, second)];
+            return OpCodeMap[(first, second)];
         }
 
         // First byte being 0xFF represents only to use second byte
@@ -109,7 +109,8 @@ namespace NetJit.Representations
         public ControlFlowKind ControlFlowKind { get; }
 
         public bool IsBranch => FirstByte == 0xFF && (SecondByte >= 0x2b && SecondByte <= 0x45);
-        public bool IsUnconditionalBranch => !IsConditionalBranch;
+        public bool IsUnconditionalBranch => this == Br || this == Br_S;
+        public bool IsEndOfMethod => this == Ret || this == Jmp;
         public bool IsConditionalBranch => IsBranch && (this != Br && this != Br_S);
     }
 }
