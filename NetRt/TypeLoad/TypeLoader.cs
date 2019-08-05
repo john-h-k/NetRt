@@ -16,7 +16,7 @@ namespace NetRt.TypeLoad
         private readonly MetadataReader _reader;
         private readonly uint _typeTableStart;
         private readonly TableHeap.TableInfo _typeTableInfo;
-        private readonly Dictionary<TypeDef, TypeDefinition> _loadedTypes = new Dictionary<TypeDef, TypeDefinition>();
+        private readonly Dictionary<TypeDef, TypeInformation> _loadedTypes = new Dictionary<TypeDef, TypeInformation>();
 
         public TypeLoader(CliImage image, Stream stream)
         {
@@ -32,9 +32,9 @@ namespace NetRt.TypeLoad
                 _typeTableInfo.Offset;
         }
 
-        public TypeDefinition EnsureTypeLoaded(TypeDef typeDef)
+        public TypeInformation EnsureTypeLoaded(TypeDef typeDef)
         {
-            if (_loadedTypes.TryGetValue(typeDef, out TypeDefinition type)) return type;
+            if (_loadedTypes.TryGetValue(typeDef, out TypeInformation type)) return type;
             LoadStaticFields(typeDef);
             //GenerateMethodTable(typeDef);
             //if (!typeDef.HasBeforefieldinit)
@@ -49,7 +49,7 @@ namespace NetRt.TypeLoad
             {
                 if (!field.Flags.HasFlag(FieldAttributes.Static)) continue;
 
-                TypeDefinition fieldType = EnsureTypeLoaded(field.ReadSignature().FieldType);
+                TypeInformation fieldType = EnsureTypeLoaded(((dynamic)field.ReadSignature()).FieldType);
                 MallocBlock<byte> fieldData = MallocBlock<byte>.Allocate(fieldType.Size);
 
             }

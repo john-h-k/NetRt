@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Common;
 using NetJit.Representations;
 using OpCode = NetJit.Representations.OpCode;
@@ -45,6 +47,13 @@ namespace NetJit
             Advance(opCode.OperandSize);
 
             return new Instruction(opCode, operand);
+        }
+
+        public void FollowBranch(Instruction branch)
+        {
+            Debug.Assert(branch.OpCode.IsBranch);
+            Debug.Assert(branch.OpCode.OperandSize == 1 || branch.OpCode.OperandSize == 4);
+            Advance((branch.OpCode.OperandSize == 1 ? MemoryMarshal.Read<byte>(branch.Operand.Span) : MemoryMarshal.Read<int>(branch.Operand.Span)) + 1);
         }
     }
 }

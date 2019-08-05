@@ -3,7 +3,7 @@ using NetRt.Assemblies;
 
 namespace NetRt.TypeLoad.TypeSystem
 {
-    public abstract class TypeDefinition
+    public abstract class TypeInformation
     {
         public abstract int Size { get; }
         public abstract Field[] Fields { get; }

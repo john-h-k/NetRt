@@ -18,8 +18,7 @@ namespace NetRt.TypeLoad
 
         public FieldSig ReadSignature()
         {
-            double x = double.MaxValue;
-            ;
+            throw new NotImplementedException();
         }
     }
 }

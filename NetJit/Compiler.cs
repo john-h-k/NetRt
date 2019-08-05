@@ -2,15 +2,21 @@
 using NetInterface;
 using NetRt.Assemblies;
 using NetRt.Interfaces;
+using NetRt.Metadata;
 
 namespace NetJit
 {
     public sealed unsafe partial class Compiler : Jit
     {
-        private Memory<byte> _methodBytes;
-        public override byte* JitMethod(MethodDef method, ref byte il)
+        static Compiler()
         {
-            _methodBytes = ScanIlForEnd(ref il);
+            Instance = new Compiler();
+        }
+
+        private Memory<byte> _il;
+        public override byte* JitMethod(MethodInformation method)
+        {
+            _il = method.Il;
         }
     }
 }

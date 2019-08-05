@@ -29,8 +29,6 @@ namespace NetJit.Representations
             return FirstByte | (SecondByte << 8);
         }
 
-        private static readonly Dictionary<(byte first, byte second), OpCode> _opCodes = new Dictionary<(byte first, byte second), OpCode>();
-
         private OpCode(string alias, PopBehaviour popBehaviour, PushBehaviour pushBehaviour, OperandParams operandParams, OpCodeKind opCodeKind, int size, byte firstByte, byte secondByte, ControlFlowKind controlFlowKind)
         {
 #if DEBUG
@@ -73,12 +71,14 @@ namespace NetJit.Representations
 
         public static bool operator !=(OpCode left, OpCode right) => !(left == right);
 
+        private static readonly Dictionary<(byte first, byte second), OpCode> _opCodes = new Dictionary<(byte first, byte second), OpCode>();
+
         public static OpCode ReadOpCode(ref byte il)
         {
             byte first = il;
             byte second;
             // 2 byte encoding
-            if (first == 0xFF || first == 0xFE)
+            if (first == 0xFE)
             {
                 second = Unsafe.Add(ref il, 1);
             }

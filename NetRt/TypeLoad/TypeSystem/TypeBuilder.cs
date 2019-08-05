@@ -22,13 +22,13 @@ namespace NetRt.TypeLoad.TypeSystem
         public void Add(Field field) => _fields.Add(field);
         public void Add(MethodDef methodDef) => _methods.Add(methodDef);
 
-        public TypeDefinition Finalize()
+        public TypeInformation Finalize()
         {
             throw new NotImplementedException();
         }
 
 
-        public static ByRefType MakeByRefType(TypeDefinition type)
+        public static ByRefType MakeByRefType(TypeInformation type)
         {
             if (type is ByRefType)
                 throw new ArgumentException("Cannot make a byref to a byref");
@@ -36,7 +36,7 @@ namespace NetRt.TypeLoad.TypeSystem
             return new ByRefType(type);
         }
 
-        public static ByRefType MakePointerType(TypeDefinition type)
+        public static ByRefType MakePointerType(TypeInformation type)
         {
             if (type is ByRefType)
                 throw new ArgumentException("Cannot make a byref to a byref");

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
+using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Net.Http.Headers;
@@ -10,21 +13,23 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using NetInterface;
 using NetRt.Common;
+using NetRt.Metadata;
 using NetRt.TypeLoad;
 using static NetRt.Assemblies.Heaps.TableHeap;
+using ExceptionHandlingClause = NetRt.Metadata.ExceptionHandlingClause;
 
 namespace NetRt.Assemblies
 {
     using Rva = UInt32;
 
-    public sealed class MetadataReader
+    public sealed class MetadataReader : BinaryReader
     {
         private readonly CliImage _image;
         private readonly Stream _stream;
 
         private TableInfo GetTableInfo(Table table) => _image.TableHeap[table];
 
-        public MetadataReader(CliImage image, Stream stream)
+        public MetadataReader(CliImage image, Stream stream) : base(stream)
         {
             if (image is null) throw new ArgumentNullException(nameof(image));
             if (stream is null) throw new ArgumentNullException(nameof(stream));
@@ -34,7 +39,7 @@ namespace NetRt.Assemblies
 
         public static Rva TokenToRid(Rva rva) => rva & 0x00ffffff;
 
-        private void GotoTable(Table table)
+        public void GotoTable(Table table)
         {
             TableInfo tableInfo = _image.TableHeap[table];
 
@@ -43,7 +48,12 @@ namespace NetRt.Assemblies
 
         private uint TableStart => _image.TableHeapOffset + _image.MetadataSection.PointerToRawData;
 
-        private void GotoTable(Table table, Rva row)
+        public void GotoRva(Rva rva)
+        {
+            _stream.Position = _image.MetadataSection.PointerToRawData + rva;
+        }
+
+        public void GotoTable(Table table, Rva row)
         {
             TableInfo tableInfo = _image.TableHeap[table];
 
@@ -110,6 +120,124 @@ namespace NetRt.Assemblies
             return new TypeRef(resolutionScope, typeName, typeNamespace);
         }
 
+        public uint Read3Bytes()
+        {
+            Span<byte> buff = stackalloc byte[4];
+            Read(buff.Slice(0, 3));
+            return MemoryMarshal.Read<uint>(buff);
+        }
+
+        public T Read<T>() where T : unmanaged
+        {
+            return _stream.Read<T>();
+        }
+
+        public Metadata.MethodInformation ReadMethod(MethodDef methodToken)
+        {
+            GotoRva(methodToken.Rva);
+            MethodHeader header = ReadMethodHeader();
+
+            IMemoryOwner<byte> il = MemoryPool<byte>.Shared.Rent((int)header.CodeSize);
+            Read(il.Memory.Span);
+            _stream.Position = (_stream.Position + 3) & ~3;
+
+            var sections = new List<MethodDataSection>();
+            if (header.Flags.HasFlag(MethodHeaderFlags.CorILMethod_MoreSects))
+            {
+                while (true)
+                {
+
+                    MethodDataSection section = ReadMethodDataSection();
+                    sections.Add(section);
+                    if (section.IsFinalSection) break;
+                }
+            }
+
+
+            return new Metadata.MethodInformation(methodToken, header, il, sections.ToArray());
+        }
+
+        private MethodHeader ReadMethodHeader()
+        {
+            byte header = ReadByte();
+
+
+            const byte flagsMask = 0b_0000_0011;
+            const byte sizeMask = 0b_1111_1100;
+
+            var flags = (MethodHeaderFlags)(header & flagsMask);
+            if (flags == MethodHeaderFlags.CorILMethod_TinyFormat)
+            {
+
+                uint size = (uint)header & sizeMask;
+                return new MethodHeader(flags, size);
+            }
+            else
+            {
+                var flagsAndSize = Read<ushort>();
+                const ushort fatFlagsMask = 0b_0000_1111_1111_1111;
+                const ushort fatSizeMask = 0b_1111_0000_0000_0000;
+
+                flags = (MethodHeaderFlags)(flagsAndSize & fatFlagsMask);
+                uint size = (uint)flagsAndSize & fatSizeMask;
+
+                var maxStack = Read<ushort>();
+                var codeSize = Read<uint>();
+                var localVarSigTok = Read<uint>();
+
+                return new MethodHeader(flags, (byte)(size * 3), maxStack, codeSize, localVarSigTok);
+            }
+        }
+
+        private MethodDataSection ReadMethodDataSection()
+        {
+            var kind = Read<SectionKind>();
+            bool isFat = kind.HasFlag(SectionKind.CorILMethod_Sect_FatFormat);
+            uint dataSize = isFat ? Read3Bytes() : ReadByte();
+            uint numClauses = isFat ? (dataSize - 4) / 24 : (dataSize - 4) / 12;
+
+            ImmutableArray<ExceptionHandlingClause> eh =
+                isFat ? ReadFatEhHandlingClauses(kind, numClauses) : ReadThinEhHandlingClauses(kind, numClauses);
+
+            return new MethodDataSection(kind, dataSize, eh);
+        }
+
+        private ImmutableArray<ExceptionHandlingClause> ReadFatEhHandlingClauses(SectionKind kind, uint numClauses)
+        {
+            ImmutableArray<ExceptionHandlingClause>.Builder builder = ImmutableArray.CreateBuilder<ExceptionHandlingClause>((int)numClauses);
+            for (var i = 0; i < numClauses; i++)
+            {
+                var ehKind = (EhKind)Read<ushort>();
+                var tryOffset = Read<uint>();
+                var tryLength = Read<uint>();
+                var handlerOffset = Read<uint>();
+                var handlerLength = Read<uint>();
+                var classTokenOrFilterOffset = Read<uint>();
+
+                builder.Add(new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset));
+            }
+
+            return builder.MoveToImmutable();
+        }
+
+        private ImmutableArray<ExceptionHandlingClause> ReadThinEhHandlingClauses(SectionKind kind, uint numClauses)
+        {
+            ImmutableArray<ExceptionHandlingClause>.Builder builder = ImmutableArray.CreateBuilder<ExceptionHandlingClause>((int)numClauses);
+            for (var i = 0; i < numClauses; i++)
+            {
+                var ehKind = (EhKind)Read<uint>();
+                var tryOffset = Read<ushort>();
+                var tryLength = Read<byte>();
+                var handlerOffset = Read<ushort>();
+                var handlerLength = Read<byte>();
+                var classTokenOrFilterOffset = Read<uint>();
+
+                builder.Add(new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset));
+            }
+
+            return builder.MoveToImmutable();
+        }
+
         public TypeSpec ReadTypeSpec(Rva specToken)
         {
             GotoTable(Table.TypeSpec, TokenToRid(specToken));
@@ -168,4 +296,4 @@ namespace NetRt.Assemblies
             }
         }
     }
-}   
+}

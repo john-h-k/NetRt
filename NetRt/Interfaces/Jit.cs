@@ -1,5 +1,6 @@
 ﻿using NetInterface;
 using NetRt.Assemblies;
+using NetRt.Metadata;
 
 namespace NetRt.Interfaces
 {
@@ -7,6 +8,6 @@ namespace NetRt.Interfaces
     {
         public static Jit Instance { get; set; }
 
-        public abstract unsafe byte* JitMethod(MethodDef method, ref byte il);
+        public abstract unsafe byte* JitMethod(MethodInformation method);
     }
 }

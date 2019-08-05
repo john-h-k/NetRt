@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 
 #nullable enable
 
@@ -11,6 +12,13 @@ namespace NetJit.Representations
     {
         private BasicBlock? __backing_field__previous;
         private BasicBlock? __backing_field__next;
+
+        public BasicBlock(BasicBlock? previous, BasicBlock? next, Memory<byte> il)
+        {
+            Previous = previous;
+            Next = next;
+            Il = il;
+        }
 
         public BasicBlock? Previous
         {
