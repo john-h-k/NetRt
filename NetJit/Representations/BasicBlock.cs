@@ -31,9 +31,9 @@ namespace NetJit.Representations
                 if (value is object) value.Previous = this;
             }
         }
-        
-        private BasicBlockFlags Flags { get; set; }
 
+        public BasicBlockFlags Flags { get; set; }
+        public Memory<byte> Il { get; set; }
         
     }
 

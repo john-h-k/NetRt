@@ -1,29 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using NetJit.Representations;
+using static NetJit.Representations.OpCodesDef;
 
 namespace NetJit
 {
     public partial class Compiler
     {
-        public BasicBlock CreateBasicBlocks()
+        private BasicBlock _first;
+        private InstructionReader _instructionReader = new InstructionReader();
+
+        public void CreateBasicBlocks()
         {
-
-        }
-
-        private static Span<byte> TryReadInstruction()
-        {
-
-        }
-
-        // Used to verify the IL eventually ends. If it doesn't, the poor JIT will continue building basic blocks confusedly forever. #tragic
-        // IL ends in a ret/throw/rethrow/jmp or infinite loop
-        private Memory<byte> ScanIlForEnd(ref byte il)
-        {
-
-            while (true)
+            // We mark the boundaries where non-exceptional control flow occurs, and divide the blocks there
+            Instruction instr = _instructionReader.ReadInstruction();
+            if (IsBasicBlockBoundary(instr.OpCode))
             {
 
             }
         }
+
     }
 }
