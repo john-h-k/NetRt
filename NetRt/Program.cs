@@ -8,6 +8,7 @@ using NetRt.Common;
 using NetRt.Interfaces;
 using NetRt.Metadata;
 using NetRt.TypeLoad;
+using ReflectionAssembly = System.Reflection.Assembly;
 
 namespace NetRt
 {
@@ -41,6 +42,7 @@ namespace NetRt
                 var metadata = new MetadataReader(reader.Image, mem);
                 MethodDef method = metadata.ReadMethodDef(reader.Image.EntryPointToken);
                 MethodInformation methodInfo = metadata.ReadMethod(method);
+                Console.WriteLine(methodInfo);
 
                 Jit.Initialize(methodInfo);
                 Jit.JitMethod();
@@ -59,16 +61,19 @@ namespace NetRt
 
         static Program()
         {
-#if DEBUG
-            const bool debug = true;
-#else
-            const bool debug = false;
-#endif
-            System.Reflection.Assembly jit = System.Reflection.Assembly.LoadFile(
-                $@"C:\Users\johnk\source\repos\NetRt\NetJit\bin\{(debug ? "Debug" : "Release")}\netcoreapp3.0\NetJit.dll");
+            ReflectionAssembly jit = ReflectionAssembly.LoadFile("NetJit.dll");
             Type type = jit.GetType("NetJit.Compiler");
+
+            if (!type.IsSubclassOf(typeof(Jit)))
+                ThrowHelper.ThrowNotSupportedException(
+            "Provided JIT is not derived from NetRt.Jit");
+
             RuntimeHelpers.RunClassConstructor(type.TypeHandle);
             Jit = Jit.Instance;
+
+            if (Jit is null)
+                ThrowHelper.ThrowInvalidOperationException(
+                    "Provided JIT did not properly initialize NetRt.Jit.Instance");
         }
 
 
@@ -92,7 +97,7 @@ namespace NetRt
             {
                 Console.WriteLine("TypeDef: " + MakeName(typeDef.TypeNamespace, typeDef.TypeName));
 
-                int n = 0;
+                var n = 0;
                 foreach (Field field in metadata.EnumerateFields(typeDef))
                 {
                     Console.WriteLine($"\tField {n++}: {(field.Flags.HasFlag(FieldAttributes.Static) ? "static" : "")} {field.Name}");

@@ -29,15 +29,17 @@ namespace NetJit
                 cur = new BasicBlock(previous: cur, next: null, _ilMemory, prevPosition, boundaries[i] - prevPosition);
                 prevPosition = boundaries[i];
             }
-        }
 
-        private static void AddNoDuplicate(List<int> l, int i)
-        {
-            if (!l.Contains(i)) l.Add(i);
+            _bbCount = boundaries.Count;
         }
 
         private List<int> MarkBasicBlockBoundaries()
         {
+            static void AddNoDuplicate(List<int> l, int i)
+            {
+                if (!l.Contains(i)) l.Add(i);
+            }
+
             var boundaries = new List<int>();
 
             // We mark the boundaries where non-exceptional control flow occurs, and divide the blocks there
@@ -63,5 +65,18 @@ namespace NetJit
             return boundaries;
         }
 
+        private void CreateExpressionTrees()
+        {
+            foreach (BasicBlock basicBlock in _first)
+            {
+                CreateTreeForBlock(basicBlock);
+            }
+        } 
+
+        private void CreateTreeForBlock(BasicBlock basicBlock)
+        {
+            // lets just hope the IL is invalid, in which case this is correct
+            throw new InvalidProgramException("Invalid IL detected during import");
+        }
     }
 }

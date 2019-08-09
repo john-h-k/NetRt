@@ -14,6 +14,17 @@ namespace NetRt.Metadata
             _unionField = ClassTokenOrFieldOffset;
         }
 
+        public override string ToString()
+        {
+            return $"Exception Handling Clause: \n" +
+                   $"EhKind: {EhKind}\n" +
+                   $"TryOffset: {TryOffset}\n" +
+                   $"TryLength: {TryLength}\n" +
+                   $"HandlerOffset: {HandlerOffset}\n" +
+                   $"HandlerLength: {HandlerLength}\n" +
+                   $"{(EhKind == EhKind.COR_ILEXCEPTION_CLAUSE_EXCEPTION ? "ClassToken" : "FilterOffset")}: {_unionField}";
+        }
+
         public EhKind EhKind { get; }
         public uint TryOffset { get; }
         public uint TryLength { get; }

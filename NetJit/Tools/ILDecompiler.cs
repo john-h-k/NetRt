@@ -3,10 +3,13 @@ using Common;
 using NetJit.Representations;
 using NetRt.Metadata;
 
+#nullable enable
+
 namespace NetJit.Tools
 {
     public readonly struct IlDecompiler
     {
+        public MethodInformation? _Method;
         public Memory<byte> Il { get; }
         public int Offset { get; }
 

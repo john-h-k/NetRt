@@ -19,7 +19,7 @@ namespace NetRt.Common
             }
             else
             {
-                len = (((span[0]) & ~0xC0) << 24) | (span[1] << 16) | (span[2] << 8) | span[3];
+                len = ((span[0] & ~0b1100_0000) << 24) | (span[1] << 16) | (span[2] << 8) | span[3];
                 span = span.Slice(4);
             }
 
