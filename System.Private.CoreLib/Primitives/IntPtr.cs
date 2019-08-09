@@ -17,10 +17,9 @@ namespace System
 
         public IntPtr(int value) => _value = value;
 
-        public IntPtr(long value)
-        {
-            _value = checked((nint)value);
-        }
+        public IntPtr(long value) => _value = checked((nint)value);
+
+        public unsafe IntPtr(void* value) => _value = (nint)value;
 
         [Intrinsic]
         public static IntPtr operator +(IntPtr left, IntPtr right)
@@ -112,13 +111,24 @@ namespace System
             return new IntPtr(left % right._value);
         }
 
-        //[Intrinsic]
-        //public static explicit operator IntPtr(int value) => new IntPtr(value);
-        
+        [Intrinsic]
+        public static explicit operator IntPtr(int value) => new IntPtr(value);
         [Intrinsic]
         public static explicit operator IntPtr(long value) => new IntPtr(value);
+
         [Intrinsic]
-        public static implicit operator IntPtr(int value) => new IntPtr(value);
+        public static explicit operator int(IntPtr value) => checked((int)value._value);
+        [Intrinsic]
+        public static explicit operator long(IntPtr value) => checked((long)value._value);
+
+        //[Intrinsic]
+        //public static implicit operator IntPtr(int value) => new IntPtr(value);
+
+        [Intrinsic]
+        public static unsafe explicit operator IntPtr(void* value) => new IntPtr(value);
+
+        [Intrinsic]
+        public static unsafe explicit operator void*(IntPtr value) => (void*)value._value;
 
         public override int GetHashCode()
         {

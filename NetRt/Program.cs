@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using NetRt.Assemblies;
 using NetRt.Common;
 using NetRt.Interfaces;
+using NetRt.Metadata;
 using NetRt.TypeLoad;
 
 namespace NetRt
@@ -32,14 +33,18 @@ namespace NetRt
 
             try
             {
-                using var file = new FileStream(args[0], FileMode.Open, FileAccess.Read, FileShare.None);
+                using var file = new FileStream(args[0], FileMode.Open, FileAccess.Read, FileShare.Read);
                 var mem = new MemoryStream(checked((int)file.Length));
                 file.CopyTo(mem);
                 var reader = new CliImage.CliImageReader();
                 reader.CreateFromStream(new Disposable<Stream>(mem, owned: true), args[0]);
                 var metadata = new MetadataReader(reader.Image, mem);
-                var method = metadata.ReadMethodDef(reader.Image.EntryPointToken);
-                Jit.JitMethod(metadata.ReadMethod(method));
+                MethodDef method = metadata.ReadMethodDef(reader.Image.EntryPointToken);
+                MethodInformation methodInfo = metadata.ReadMethod(method);
+
+                Jit.Initialize(methodInfo);
+                Jit.JitMethod();
+                Console.WriteLine(Jit.CreateJitDump());
             }
             catch (IOException e)
             {

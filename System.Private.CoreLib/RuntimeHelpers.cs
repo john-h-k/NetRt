@@ -9,31 +9,31 @@ namespace System
 
         public static bool IsBitwiseEquatable<T>()
         {
-            if (
-                typeof(T) == typeof(bool)
+            //if (
+            //    typeof(T) == typeof(bool)
 
-                || typeof(T) == typeof(sbyte)
-                || typeof(T) == typeof(byte)
-
-
-                || typeof(T) == typeof(short)
-                || typeof(T) == typeof(ushort)
+            //    || typeof(T) == typeof(sbyte)
+            //    || typeof(T) == typeof(byte)
 
 
-                || typeof(T) == typeof(int)
-                || typeof(T) == typeof(uint)
+            //    || typeof(T) == typeof(short)
+            //    || typeof(T) == typeof(ushort)
 
 
-                || typeof(T) == typeof(long)
-                || typeof(T) == typeof(ulong)
+            //    || typeof(T) == typeof(int)
+            //    || typeof(T) == typeof(uint)
 
 
-                || typeof(T) == typeof(float)
-                || typeof(T) == typeof(double)
-                )
-            {
-                return true;
-            }
+            //    || typeof(T) == typeof(long)
+            //    || typeof(T) == typeof(ulong)
+
+
+            //    || typeof(T) == typeof(float)
+            //    || typeof(T) == typeof(double)
+            //    )
+            //{
+            //    return true;
+            //}
 
             // TODO If T has BitwiseEquatableAttribute
 

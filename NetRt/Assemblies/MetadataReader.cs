@@ -151,7 +151,7 @@ namespace NetRt.Assemblies
             return _stream.Read<T>();
         }
 
-        public Metadata.MethodInformation ReadMethod(MethodDef methodToken)
+        public MethodInformation ReadMethod(MethodDef methodToken)
         {
             GotoRva(methodToken.Rva);
             MethodHeader header = ReadMethodHeader();
@@ -173,13 +173,12 @@ namespace NetRt.Assemblies
             }
 
 
-            return new Metadata.MethodInformation(methodToken, header, il, sections.ToArray());
+            return new MethodInformation(methodToken, header, il, sections.ToArray());
         }
 
         private MethodHeader ReadMethodHeader()
         {
             byte header = ReadByte();
-
 
             const byte flagsMask = 0b_0000_0011;
             const byte sizeMask = 0b_1111_1100;
@@ -187,12 +186,12 @@ namespace NetRt.Assemblies
             var flags = (MethodHeaderFlags)(header & flagsMask);
             if (flags == MethodHeaderFlags.CorILMethod_TinyFormat)
             {
-
                 uint size = (uint)header & sizeMask;
                 return new MethodHeader(flags, size);
             }
             else
             {
+                _stream.Position--;
                 var flagsAndSize = Read<ushort>();
                 const ushort fatFlagsMask = 0b_0000_1111_1111_1111;
                 const ushort fatSizeMask = 0b_1111_0000_0000_0000;
@@ -216,12 +215,12 @@ namespace NetRt.Assemblies
             uint numClauses = isFat ? (dataSize - 4) / 24 : (dataSize - 4) / 12;
 
             ImmutableArray<ExceptionHandlingClause> eh =
-                isFat ? ReadFatEhHandlingClauses(kind, numClauses) : ReadThinEhHandlingClauses(kind, numClauses);
+                isFat ? ReadFatEhHandlingClauses(numClauses) : ReadThinEhHandlingClauses(numClauses);
 
             return new MethodDataSection(kind, dataSize, eh);
         }
 
-        private ImmutableArray<ExceptionHandlingClause> ReadFatEhHandlingClauses(SectionKind kind, uint numClauses)
+        private ImmutableArray<ExceptionHandlingClause> ReadFatEhHandlingClauses(uint numClauses)
         {
             ImmutableArray<ExceptionHandlingClause>.Builder builder = ImmutableArray.CreateBuilder<ExceptionHandlingClause>((int)numClauses);
             for (var i = 0; i < numClauses; i++)
@@ -239,7 +238,7 @@ namespace NetRt.Assemblies
             return builder.MoveToImmutable();
         }
 
-        private ImmutableArray<ExceptionHandlingClause> ReadThinEhHandlingClauses(SectionKind kind, uint numClauses)
+        private ImmutableArray<ExceptionHandlingClause> ReadThinEhHandlingClauses(uint numClauses)
         {
             ImmutableArray<ExceptionHandlingClause>.Builder builder = ImmutableArray.CreateBuilder<ExceptionHandlingClause>((int)numClauses);
             for (var i = 0; i < numClauses; i++)

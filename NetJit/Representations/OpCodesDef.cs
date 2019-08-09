@@ -123,7 +123,7 @@ namespace NetJit.Representations
 
     public static class OpCodesDef
     {
-        public static bool IsBasicBlockBoundary(OpCode op) => op.ControlFlowKind == Return || /* op.IsBranch */ op.IsUnconditionalBranch;
+        public static bool IsBasicBlockBoundary(OpCode op) => op.ControlFlowKind == Return || op.IsBranch;
 
         public static readonly Dictionary<(byte first, byte second), OpCode> OpCodeMap = new Dictionary<(byte first, byte second), OpCode>();
         public static int GetSizeForParamKind(OperandParams operandParams)
@@ -138,7 +138,7 @@ namespace NetJit.Representations
                 case InlineI:
                     return 4;
                 case ShortInlineI:
-                    return 2;
+                    return 1;
                 case InlineI8:
                     return 8;
                 case ShortInlineR:

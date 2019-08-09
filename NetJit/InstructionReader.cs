@@ -41,12 +41,13 @@ namespace NetJit
 
         public Instruction ReadInstruction()
         {
-            OpCode opCode = OpCode.ReadOpCode(ref Current.Span[Position]);
+            int opPosition = Position;
+            OpCode opCode = OpCode.ReadOpCode(ref Il.Span[Position]);
             Advance(opCode.Size);
             Memory<byte> operand = Current.Slice(0, opCode.OperandSize);
             Advance(opCode.OperandSize);
 
-            return new Instruction(opCode, operand);
+            return new Instruction(opCode, operand, opCode.Size + opCode.OperandSize, opPosition);
         }
 
         public void FollowBranch(Instruction branch)

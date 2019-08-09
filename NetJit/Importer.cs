@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using NetJit.Representations;
@@ -16,41 +17,51 @@ namespace NetJit
         public void CreateBasicBlocks()
         {
             List<int> boundaries = MarkBasicBlockBoundaries();
+            boundaries.Sort();
 
             var prevPosition = 0;
 
-            var cur = new BasicBlock(previous: null, next: null, _ilMemory.Slice(prevPosition, boundaries[0]));
+            var cur = new BasicBlock(previous: null, next: null, _ilMemory, prevPosition, boundaries[0] - prevPosition);
+            prevPosition = boundaries[0];
             _first = cur;
             for (var i = 1; i < boundaries.Count; i++)
             {
-                cur = new BasicBlock(previous: cur, next: null, _ilMemory.Slice(prevPosition, boundaries[i]));
+                cur = new BasicBlock(previous: cur, next: null, _ilMemory, prevPosition, boundaries[i] - prevPosition);
                 prevPosition = boundaries[i];
             }
+        }
+
+        private static void AddNoDuplicate(List<int> l, int i)
+        {
+            if (!l.Contains(i)) l.Add(i);
         }
 
         private List<int> MarkBasicBlockBoundaries()
         {
             var boundaries = new List<int>();
-            // We mark the boundaries where non-exceptional control flow occurs, and divide the blocks there
 
-            while (true)
+            // We mark the boundaries where non-exceptional control flow occurs, and divide the blocks there
+            Instruction instr;
+
+            Span<byte> il = Il;
+
+            for (var i = 0; i < il.Length; i += instr.FullSize)
             {
-                Instruction instr = _instructionReader.ReadInstruction();
+                instr = _instructionReader.ReadInstruction();
                 if (IsBasicBlockBoundary(instr.OpCode))
                 {
-                    boundaries.Add(_instructionReader.Position);
+                    AddNoDuplicate(boundaries, i + instr.FullSize);
+
                     if (instr.OpCode.IsBranch)
                     {
-                        //_instructionReader.FollowBranch(instr);
-                    }
-                    else if (instr.OpCode.IsEndOfMethod)
-                    {
-                        break;
+                        int target = instr.ReadBranchTarget();
+                        AddNoDuplicate(boundaries, i + instr.FullSize + target);
                     }
                 }
             }
 
             return boundaries;
         }
+
     }
 }

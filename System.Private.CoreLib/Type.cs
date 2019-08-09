@@ -8,5 +8,10 @@
         {
             return FullName;
         }
+
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle)
+        {
+            throw null;
+        }
     }
 }

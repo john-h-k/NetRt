@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Dynamic;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using NetRt.Assemblies;
@@ -29,7 +30,7 @@ namespace NetRt.Metadata
         public string Name => RawMethodDef.Name;
         public bool HasBody => Rva != 0;
         public MethodHeader Header { get; }
-        public Memory<byte> Il => _ownedIl.Memory;
+        public Memory<byte> Il => _ownedIl.Memory.Slice(0, checked((int)Header.CodeSize));
         private readonly IMemoryOwner<byte> _ownedIl;
 
         public MethodDataSection[] MethodDataSection { get; set; }
