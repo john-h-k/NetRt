@@ -52,6 +52,10 @@ namespace NetJit
 
         public override string CreateJitDump()
         {
+            var buff = new char[1024 * 16];
+            bool res = new MethodDecompiler(_methodInformation).TryFormat(buff, out int charsWritten);
+            return res ? new string(buff) : "FAIL";
+
             const string divider = "********************************************************************************";
 
             BasicBlock b = _first;

@@ -151,13 +151,16 @@ namespace NetRt.Assemblies
             return _stream.Read<T>();
         }
 
+        // TODO cache methods by RVA etc
+
         public MethodInformation ReadMethod(MethodDef methodToken)
         {
             GotoRva(methodToken.Rva);
             MethodHeader header = ReadMethodHeader();
 
-            IMemoryOwner<byte> il = MemoryPool<byte>.Shared.Rent((int)header.CodeSize);
-            Read(il.Memory.Span);
+            int size = (int)header.CodeSize;
+            IMemoryOwner<byte> il = MemoryPool<byte>.Shared.Rent(size);
+            Read(il.Memory.Span.Slice(0, size));
             _stream.Position = (_stream.Position + 3) & ~3;
 
             var sections = new List<MethodDataSection>();
@@ -165,7 +168,6 @@ namespace NetRt.Assemblies
             {
                 while (true)
                 {
-
                     MethodDataSection section = ReadMethodDataSection();
                     sections.Add(section);
                     if (section.IsFinalSection) break;
@@ -212,48 +214,62 @@ namespace NetRt.Assemblies
             var kind = Read<SectionKind>();
             bool isFat = kind.HasFlag(SectionKind.CorILMethod_Sect_FatFormat);
             uint dataSize = isFat ? Read3Bytes() : ReadByte();
-            uint numClauses = isFat ? (dataSize - 4) / 24 : (dataSize - 4) / 12;
+            if (!isFat) _ = /* Reserved */ Read<ushort>();
 
-            ImmutableArray<ExceptionHandlingClause> eh =
-                isFat ? ReadFatEhHandlingClauses(numClauses) : ReadThinEhHandlingClauses(numClauses);
+            uint numClauses = 0;
+            if (dataSize != 0) numClauses = isFat ? (dataSize - 4) / 24 : (dataSize - 4) / 12;
+
+            ImmutableArray<ExceptionHandlingClause> eh = ReadEhHandlingClauses(numClauses, isFat);
 
             return new MethodDataSection(kind, dataSize, eh);
         }
 
-        private ImmutableArray<ExceptionHandlingClause> ReadFatEhHandlingClauses(uint numClauses)
+        private ImmutableArray<ExceptionHandlingClause> ReadEhHandlingClauses(uint numClauses, bool isFat)
         {
-            ImmutableArray<ExceptionHandlingClause>.Builder builder = ImmutableArray.CreateBuilder<ExceptionHandlingClause>((int)numClauses);
-            for (var i = 0; i < numClauses; i++)
-            {
-                var ehKind = (EhKind)Read<ushort>();
-                var tryOffset = Read<uint>();
-                var tryLength = Read<uint>();
-                var handlerOffset = Read<uint>();
-                var handlerLength = Read<uint>();
-                var classTokenOrFilterOffset = Read<uint>();
+            ImmutableArray<ExceptionHandlingClause>.Builder builder =
+                ImmutableArray.CreateBuilder<ExceptionHandlingClause>((int)numClauses);
 
-                builder.Add(new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset));
+            // Hoist this out of the loop as the JIT doesn't hoist it for us
+            if (isFat)
+            {
+                for (var i = 0; i < numClauses; i++)
+                {
+                    builder.Add(ReadFatEhClause());
+                }
+            }
+            else
+            {
+                for (var i = 0; i < numClauses; i++)
+                {
+                    builder.Add(ReadThinEhClause());
+                }
             }
 
             return builder.MoveToImmutable();
         }
 
-        private ImmutableArray<ExceptionHandlingClause> ReadThinEhHandlingClauses(uint numClauses)
+        private ExceptionHandlingClause ReadFatEhClause()
         {
-            ImmutableArray<ExceptionHandlingClause>.Builder builder = ImmutableArray.CreateBuilder<ExceptionHandlingClause>((int)numClauses);
-            for (var i = 0; i < numClauses; i++)
-            {
-                var ehKind = (EhKind)Read<uint>();
-                var tryOffset = Read<ushort>();
-                var tryLength = Read<byte>();
-                var handlerOffset = Read<ushort>();
-                var handlerLength = Read<byte>();
-                var classTokenOrFilterOffset = Read<uint>();
+            var ehKind = (EhKind)Read<uint>();
+            var tryOffset = Read<uint>();
+            var tryLength = Read<uint>();
+            var handlerOffset = Read<uint>();
+            var handlerLength = Read<uint>();
+            var classTokenOrFilterOffset = Read<uint>();
 
-                builder.Add(new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset));
-            }
+            return new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset);
+        }
 
-            return builder.MoveToImmutable();
+        private ExceptionHandlingClause ReadThinEhClause()
+        {
+            var ehKind = (EhKind)Read<ushort>();
+            var tryOffset = Read<ushort>();
+            var tryLength = Read<byte>();
+            var handlerOffset = Read<ushort>();
+            var handlerLength = Read<byte>();
+            var classTokenOrFilterOffset = Read<uint>();
+
+            return new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset);
         }
 
         public TypeSpec ReadTypeSpec(Rva specToken)

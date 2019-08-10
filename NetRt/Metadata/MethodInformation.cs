@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,7 @@ namespace NetRt.Metadata
 {
     public class MethodInformation : IDisposable
     {
+        public static readonly IDictionary<uint, MethodInformation> TokenToMethodInformation = new Dictionary<uint, MethodInformation>();
 
         public MethodInformation(MethodDef rawMethodDef, MethodHeader methodHeader, IMemoryOwner<byte> il, MethodDataSection[] methodDataSections)
         {
@@ -19,6 +21,8 @@ namespace NetRt.Metadata
             Header = methodHeader;
             _ownedIl = il;
             MethodDataSections = methodDataSections;
+
+            TokenToMethodInformation[rawMethodDef.Rva] = this;
         }
 
 

@@ -9,7 +9,6 @@ namespace NetJit.Tools
 {
     public readonly struct IlDecompiler
     {
-        public MethodInformation? _Method;
         public Memory<byte> Il { get; }
         public int Offset { get; }
 

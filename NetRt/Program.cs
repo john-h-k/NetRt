@@ -61,7 +61,11 @@ namespace NetRt
 
         static Program()
         {
-            ReflectionAssembly jit = ReflectionAssembly.LoadFile("NetJit.dll");
+            //ReadOnlySpan<char> location = ReflectionAssembly.GetExecutingAssembly().Location.AsSpan();
+            //location = location.Slice(0, location.LastIndexOf('\\'));
+
+            //ReflectionAssembly jit = ReflectionAssembly.LoadFile(Path.Join(location,"NetJit.dll"));
+            ReflectionAssembly jit = ReflectionAssembly.LoadFile(Path.Join(@"C:\Users\johnk\source\repos\NetRt\NetJit\bin\Debug\netcoreapp3.0", "NetJit.dll"));
             Type type = jit.GetType("NetJit.Compiler");
 
             if (!type.IsSubclassOf(typeof(Jit)))

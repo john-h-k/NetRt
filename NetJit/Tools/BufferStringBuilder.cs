@@ -45,17 +45,34 @@ namespace NetJit.Tools
             Position += s.Length;
             return true;
         }
+
         public bool TryAdd(string s, ref int charsWritten)
         {
             if (!s.AsSpan().TryCopyTo(RemainingBuffer)) return false;
-            
+
             Position += s.Length;
             charsWritten += s.Length;
             return true;
         }
 
+        public bool TryAddWithSpace(string s)
+        {
+            if (!TryAdd(s)) return false;
+            if (!TryAdd(' ')) return false;
+
+            return true;
+        }
+
+        public bool TryAddWithSpace(string s, ref int charsWritten)
+        {
+            if (!TryAdd(s, ref charsWritten)) return false;
+            if (!TryAdd(' ', ref charsWritten)) return false;
+
+            return true;
+        }
+
         public bool TryAdd<T>(T t) => TryAdd(t.ToString());
 
-        public bool TryAdd<T>(T t, ref int charsWritten) => TryAdd(t.ToString(), ref charsWritten);
+        public bool TryAdd<T>(T t, ref int charsWritten) => TryAddWithSpace(t.ToString(), ref charsWritten);
     }
 }
