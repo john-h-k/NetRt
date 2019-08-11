@@ -44,8 +44,6 @@ namespace NetJit
 
             // We mark the boundaries where non-exceptional control flow occurs, and divide the blocks there
 
-            Span<byte> il = Il;
-
             foreach (Instruction instr in _instructionReader)
             {
                 if (IsBasicBlockBoundary(instr.OpCode))

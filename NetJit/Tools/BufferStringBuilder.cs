@@ -35,7 +35,7 @@ namespace NetJit.Tools
         public bool IsBufferEmpty => Buffer.IsEmpty;
         public bool IsBufferFull => Position == Buffer.Length;
         public int RemainingCapacity => Buffer.Length - Position;
-
+        
         public void Advance(int count)
         {
             if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));

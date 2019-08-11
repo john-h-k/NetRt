@@ -75,7 +75,6 @@ namespace NetJit.Representations
                 Current = Current.Next!;
                 return Current == null;
             }
-
             public void Reset()
             {
                 Current = new BasicBlock(_first);
