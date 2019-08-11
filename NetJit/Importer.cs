@@ -21,12 +21,12 @@ namespace NetJit
 
             var prevPosition = 0;
 
-            var cur = new BasicBlock(previous: null, next: null, _ilMemory, prevPosition, boundaries[0] - prevPosition);
+            var cur = new BasicBlock(previous: null, next: null, InstructionReader.ReadAllInstructions(_ilMemory), prevPosition, boundaries[0] - prevPosition);
             prevPosition = boundaries[0];
             _first = cur;
             for (var i = 1; i < boundaries.Count; i++)
             {
-                cur = new BasicBlock(previous: cur, next: null, _ilMemory, prevPosition, boundaries[i] - prevPosition);
+                cur = new BasicBlock(previous: cur, next: null, InstructionReader.ReadAllInstructions(_ilMemory), prevPosition, boundaries[i] - prevPosition);
                 prevPosition = boundaries[i];
             }
 
@@ -50,12 +50,12 @@ namespace NetJit
             {
                 if (IsBasicBlockBoundary(instr.OpCode))
                 {
-                    //AddNoDuplicate(boundaries, i + instr.FullSize);
+                    AddNoDuplicate(boundaries, instr.Position + instr.FullSize);
 
                     if (instr.OpCode.IsBranch)
                     {
                         int target = instr.ReadBranchTarget();
-                        //AddNoDuplicate(boundaries, i + instr.FullSize + target);
+                        AddNoDuplicate(boundaries, instr.Position + instr.FullSize + target);
                     }
                 }
             }

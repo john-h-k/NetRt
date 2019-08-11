@@ -14,7 +14,6 @@ namespace NetJit.Representations
     public class BasicBlock : IEnumerable<BasicBlock>
     {
         public BasicBlockFlags Flags { get; set; }
-        public Memory<byte> Il { get; }
         public Memory<Instruction> Instructions { get; }
         public int Offset { get; }
         public int Length { get; }
@@ -42,13 +41,13 @@ namespace NetJit.Representations
             }
         }
 
-        public BasicBlock(BasicBlock? previous, BasicBlock? next, Memory<byte> method, int offset, int length)
+        public BasicBlock(BasicBlock? previous, BasicBlock? next, Memory<Instruction> instructions, int offset, int length)
         {
             Previous = previous;
             Next = next;
             Offset = offset;
             Length = length;
-            Il = method.Slice(offset, length);
+            Instructions = instructions;
         }
 
         public Enumerator GetEnumerator() => new Enumerator(this);

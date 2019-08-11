@@ -22,7 +22,7 @@ namespace System.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AsPointer<T>(ref T value)
         {
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 
             // ldarg.0
             // conv.u
@@ -39,7 +39,7 @@ namespace System.Runtime.CompilerServices
         {
             typeof(T).ToString(); // Type token used by the actual method body
 
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 
             // sizeof !!0
             // ret
@@ -54,7 +54,7 @@ namespace System.Runtime.CompilerServices
         [return: NotNullIfNotNull("value")]
         public static T As<T>(object? value) where T : class ?
         {
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 
             // ldarg.0
             // ret
@@ -68,7 +68,7 @@ namespace System.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref TTo As<TFrom, TTo>(ref TFrom source)
         {
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 
             // ldarg.0
             // ret
@@ -84,7 +84,7 @@ namespace System.Runtime.CompilerServices
         {
 #if EXTENDED_UNSAFE_INTRINSICS
             typeof(T).ToString(); // Type token used by the actual method body
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
             return ref AddByteOffset(ref source, (IntPtr)(elementOffset * (IntPtr)SizeOf<T>()));
 #endif
@@ -100,7 +100,7 @@ namespace System.Runtime.CompilerServices
         {
 #if EXTENDED_UNSAFE_INTRINSICS
             typeof(T).ToString(); // Type token used by the actual method body
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
             return ref AddByteOffset(ref source, (IntPtr)((nint)elementOffset * (nint)SizeOf<T>()));
 #endif
@@ -116,7 +116,7 @@ namespace System.Runtime.CompilerServices
         {
 #if EXTENDED_UNSAFE_INTRINSICS
             typeof(T).ToString(); // Type token used by the actual method body
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
             return (byte*)source + (elementOffset * (nint)SizeOf<T>());
 #endif
@@ -141,7 +141,7 @@ namespace System.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool AreSame<T>(ref T left, ref T right)
         {
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 
             // ldarg.0
             // ldarg.1
@@ -161,7 +161,7 @@ namespace System.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsAddressGreaterThan<T>(ref T left, ref T right)
         {
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 
             // ldarg.0
             // ldarg.1
@@ -181,7 +181,7 @@ namespace System.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsAddressLessThan<T>(ref T left, ref T right)
         {
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 
             // ldarg.0
             // ldarg.1
@@ -212,7 +212,7 @@ namespace System.Runtime.CompilerServices
         {
 #if EXTENDED_UNSAFE_INTRINSICS
             typeof(T).ToString(); // Type token used by the actual method body
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
             return Unsafe.As<byte, T>(ref *(byte*)source);
 #endif
@@ -228,7 +228,7 @@ namespace System.Runtime.CompilerServices
         {
 #if EXTENDED_UNSAFE_INTRINSICS
             typeof(T).ToString(); // Type token used by the actual method body
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
             return Unsafe.As<byte, T>(ref source);
 #endif
@@ -244,7 +244,7 @@ namespace System.Runtime.CompilerServices
         {
 #if EXTENDED_UNSAFE_INTRINSICS
             typeof(T).ToString(); // Type token used by the actual method body
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
             Unsafe.As<byte, T>(ref *(byte*)destination) = value;
 #endif
@@ -260,7 +260,7 @@ namespace System.Runtime.CompilerServices
         {
 #if EXTENDED_UNSAFE_INTRINSICS
             typeof(T).ToString(); // Type token used by the actual method body
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
             Unsafe.As<byte, T>(ref destination) = value;
 #endif
@@ -275,7 +275,7 @@ namespace System.Runtime.CompilerServices
         public static ref T AddByteOffset<T>(ref T source, IntPtr byteOffset)
         {
             // This method is implemented by the toolchain
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
 
             // ldarg.0
             // ldarg.1
@@ -346,7 +346,18 @@ namespace System.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T AsRef<T>(in T source)
         {
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
+        }
+
+        /// <summary>
+        /// Reinterprets the given location as a reference to a value of type <typeparamref name="T"/>.
+        /// </summary>
+        [Intrinsic]
+        //[NonVersionable]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SkipInit<T>(out T value)
+        {
+            throw new PlatformNotSupportedException();
         }
 
         /// <summary>
@@ -357,7 +368,7 @@ namespace System.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntPtr ByteOffset<T>(ref T origin, ref T target)
         {
-            throw null; // new PlatformNotSupportedException();
+            throw new PlatformNotSupportedException();
         }
     }
 }

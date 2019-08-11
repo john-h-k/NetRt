@@ -14,7 +14,11 @@ namespace NetJit
     public struct InstructionReader : IEnumerable<Instruction>, IEnumerator<Instruction>
     {
         private readonly List<Instruction> _instructions;
-
+        
+        public static Instruction[] ReadAllInstructions(ReadOnlyMemory<byte> il)
+        {
+            return new InstructionReader(il).ReadAllInstructionsToArray();
+        }
         public InstructionReader(ReadOnlyMemory<byte> il)
         {
             Il = il;

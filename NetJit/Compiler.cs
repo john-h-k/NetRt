@@ -74,7 +74,7 @@ namespace NetJit
             do
             {
                 builder.Append("BasicBlock ").Append(i++).Append(':').AppendLine();
-                var decompiler = new IlDecompiler(b.Il, b.Offset);
+                var decompiler = new IlDecompiler(b.Instructions, b.Offset);
                 builder.AppendLine(decompiler.ToString());
 
                 builder.Append('\n');
