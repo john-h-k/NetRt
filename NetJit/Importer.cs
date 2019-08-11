@@ -43,21 +43,19 @@ namespace NetJit
             var boundaries = new List<int>();
 
             // We mark the boundaries where non-exceptional control flow occurs, and divide the blocks there
-            Instruction instr;
 
             Span<byte> il = Il;
 
-            for (var i = 0; i < il.Length; i += instr.FullSize)
+            foreach (Instruction instr in _instructionReader)
             {
-                instr = _instructionReader.ReadInstruction();
                 if (IsBasicBlockBoundary(instr.OpCode))
                 {
-                    AddNoDuplicate(boundaries, i + instr.FullSize);
+                    //AddNoDuplicate(boundaries, i + instr.FullSize);
 
                     if (instr.OpCode.IsBranch)
                     {
                         int target = instr.ReadBranchTarget();
-                        AddNoDuplicate(boundaries, i + instr.FullSize + target);
+                        //AddNoDuplicate(boundaries, i + instr.FullSize + target);
                     }
                 }
             }

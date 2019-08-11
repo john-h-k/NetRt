@@ -79,9 +79,23 @@ namespace NetRt.Assemblies
             _stream.Position = TableStart + (tableInfo.Offset + (tableInfo.RowSize * (row - 1)));
         }
 
-        private uint ReadStrIndex() => _image.StringHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
-        private uint ReadBlobIndex() => _image.BlobHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
-        private uint ReadGuidIndex() => _image.GuidHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
+        private uint ReadStrIndex()
+        {
+            Debug.Assert(_image.StringHeap.IndexSize == 4 || _image.StringHeap.IndexSize == 2);
+            return _image.StringHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
+        }
+
+        private uint ReadBlobIndex()
+        {
+            Debug.Assert(_image.BlobHeap.IndexSize == 4 || _image.BlobHeap.IndexSize == 2);
+            return _image.BlobHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
+        }
+
+        private uint ReadGuidIndex()
+        {
+            Debug.Assert(_image.GuidHeap.IndexSize == 4 || _image.GuidHeap.IndexSize == 2);
+            return _image.GuidHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
+        }
 
         public uint LastField(TypeDef type)
         {
@@ -102,6 +116,7 @@ namespace NetRt.Assemblies
         public MethodDef ReadMethodDef(Rva methodToken)
         {
             GotoTable(Table.Method, TokenToRid(methodToken));
+
             var rva = _stream.Read<Rva>();
             var implFlags = (MethodImplOptions)_stream.Read<ushort>();
             var flags = (MethodAttributes)_stream.Read<ushort>();
@@ -214,10 +229,21 @@ namespace NetRt.Assemblies
             var kind = Read<SectionKind>();
             bool isFat = kind.HasFlag(SectionKind.CorILMethod_Sect_FatFormat);
             uint dataSize = isFat ? Read3Bytes() : ReadByte();
+
             if (!isFat) _ = /* Reserved */ Read<ushort>();
 
-            uint numClauses = 0;
-            if (dataSize != 0) numClauses = isFat ? (dataSize - 4) / 24 : (dataSize - 4) / 12;
+            //var kindAndSize = Read<uint>();
+
+            //const uint kindMask = 0b_0000_0000__0000_0000__0000_0000__1111_1111;
+            //const uint sizeMask = ~kindMask;
+            //const uint thinSizeMask = 0b_0000_0000__0000_0000__1111_1111__0000_0000;
+
+            //var kind = (SectionKind)(kindAndSize & kindMask);
+            //bool isFat = kind.HasFlag(SectionKind.CorILMethod_Sect_FatFormat);
+            //uint dataSize = isFat ? kindAndSize & sizeMask : kindAndSize & thinSizeMask;
+
+            // Can dataSize be 0? if so - bad
+            uint numClauses = isFat ? (dataSize - 4) / 24 : (dataSize - 4) / 12;
 
             ImmutableArray<ExceptionHandlingClause> eh = ReadEhHandlingClauses(numClauses, isFat);
 
@@ -244,6 +270,16 @@ namespace NetRt.Assemblies
                     builder.Add(ReadThinEhClause());
                 }
             }
+
+            /* Un-hoisted traditional version
+             *
+             *  for (var i = 0; i < numClauses; i++)
+             *  {
+             *      builder.Add(isFat ? ReadFatEhClause() : ReadThinEhClause());
+             *  }
+             *
+             * but this leads to a check for every single iteration :(
+             */
 
             return builder.MoveToImmutable();
         }

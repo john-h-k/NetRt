@@ -19,16 +19,11 @@ namespace NetRt.Assemblies
     {
         public class CliImageReader
         {
-            public CliImage Image { get; private set; }
-            private Disposable<Stream> _disposableStream;
+            public CliImage Image { get; }
+            private readonly Disposable<Stream> _disposableStream;
             private Stream Stream => _disposableStream.Value;
 
-            public CliImageReader()
-            {
-
-            }
-
-            public void CreateFromStream(Disposable<Stream> imageStream, string name)
+            public CliImageReader(Disposable<Stream> imageStream, string name)
             {
                 _disposableStream = imageStream;
                 Image = new CliImage(name);
@@ -76,7 +71,7 @@ namespace NetRt.Assemblies
                         ThrowHelper.ThrowBadImageFormatException(CliResources.ResourceManager.GetString("InvalidMsDosHeader"));
                 }
 #else
-                stream.Seek(lfanewIndex, SeekOrigin.Begin);
+                stream.Position = lfanewIndex;
                 lfanew = Stream.Read<uint>();
 #endif // VALIDATE_FULL_DOSHEADER
 
@@ -226,7 +221,7 @@ namespace NetRt.Assemblies
                 Stream.Skip(8);
 
                 var len = Stream.Read<uint>();
-                Span<byte> versionStr = stackalloc byte[(int) len];
+                Span<byte> versionStr = stackalloc byte[(int)len];
                 Stream.Read(versionStr);
 
                 Image.MetadataVersion = Encoding.ASCII.GetString(versionStr);
@@ -240,12 +235,12 @@ namespace NetRt.Assemblies
                 if (metadataSection is null)
                     ThrowHelper.ThrowBadImageFormatException(NetRtResources.GetResource("NoMetadataSection"));
 
-                Image.MetadataSection = metadataSection;
+                Image.MetadataSection = metadataSection!;
 
                 uint tableHeapOffset = 0;
                 for (var i = 0; i < numStreams; i++)
                 {
-                    uint offset = Image.Metadata.Rva - metadataSection.VirtualAddress + Stream.Read<uint>();
+                    uint offset = Image.Metadata.Rva - metadataSection!.VirtualAddress + Stream.Read<uint>();
 
                     var size = Stream.Read<uint>();
 
@@ -305,7 +300,7 @@ namespace NetRt.Assemblies
 
                     for (var i = 0; i < TableCount; i++)
                     {
-                        if (!heap.HasTable((Table) i)) continue;
+                        if (!heap.HasTable((Table)i)) continue;
 
                         heap.Tables[i].Length = Stream.Read<uint>();
                     }
@@ -330,14 +325,14 @@ namespace NetRt.Assemblies
 
                 for (var i = 0; i < res.Length; i++)
                 {
-                    var b = (byte) Stream.ReadByte();
+                    var b = (byte)Stream.ReadByte();
                     if (b == 0)
                     {
                         len = i;
                         break;
                     }
 
-                    res[i] = (char) b;
+                    res[i] = (char)b;
                 }
 
                 AlignStream();
@@ -345,15 +340,15 @@ namespace NetRt.Assemblies
 
                 void AlignStream()
                 {
-                    var pos = (ulong) Stream.Position;
-                    Stream.Goto((int) ((pos + 3UL) & ~3UL));
+                    var pos = (ulong)Stream.Position;
+                    Stream.Goto((int)((pos + 3UL) & ~3UL));
                 }
             }
 
             private void ComputeTableInformation(uint tableHeapOffset)
             {
                 uint offset =
-                    (uint) Stream.Position - tableHeapOffset - Image.MetadataSection.PointerToRawData; // header
+                    (uint)Stream.Position - tableHeapOffset - Image.MetadataSection.PointerToRawData; // header
 
                 int stridxSize = Image.StringHeap.IndexSize;
                 int guididxSize = Image.GuidHeap?.IndexSize ?? 2;
@@ -364,7 +359,7 @@ namespace NetRt.Assemblies
 
                 for (int i = 0; i < TableCount; i++)
                 {
-                    var table = (Table) i;
+                    var table = (Table)i;
                     if (!heap.HasTable(table))
                         continue;
 
@@ -618,11 +613,11 @@ namespace NetRt.Assemblies
 
                 int GetCodedIndexSize(CodedIndex index)
                 {
-                    var i = (int) index;
+                    var i = (int)index;
                     int size = Image._codedIndexSizes[i];
                     if (size != 0) return size;
 
-                    Image._codedIndexSizes[i] = index.GetSize(table => (int) Image.TableHeap[table].Length);
+                    Image._codedIndexSizes[i] = index.GetSize(table => (int)Image.TableHeap[table].Length);
                     return Image._codedIndexSizes[i];
                 }
             }

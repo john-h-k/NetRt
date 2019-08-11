@@ -28,20 +28,20 @@ namespace NetRt.TypeLoad.TypeSystem
         }
 
 
-        public static ByRefType MakeByRefType(TypeInformation type)
+        public static ByRefType MakeByRefType(TypeInformation type, uint token)
         {
             if (type is ByRefType)
                 throw new ArgumentException("Cannot make a byref to a byref");
 
-            return new ByRefType(type);
+            return new ByRefType(type, token);
         }
 
-        public static ByRefType MakePointerType(TypeInformation type)
+        public static PointerType MakePointerType(TypeInformation type, uint token)
         {
             if (type is ByRefType)
-                throw new ArgumentException("Cannot make a byref to a byref");
+                throw new ArgumentException("Cannot make a pointer to a byref");
 
-            return new ByRefType(type);
+            return new PointerType(type, token);
         }
     }
 }

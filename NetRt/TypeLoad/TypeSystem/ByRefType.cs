@@ -7,7 +7,7 @@ namespace NetRt.TypeLoad.TypeSystem
 {
     public sealed class ByRefType : DerivativeType
     {
-        public ByRefType(TypeInformation type) => UnderlyingType = type;
+        public ByRefType(TypeInformation type, uint token) : base(token) => UnderlyingType = type;
 
         public override int Size => Unsafe.SizeOf<object>();
         public override Field[] Fields => Array.Empty<Field>();

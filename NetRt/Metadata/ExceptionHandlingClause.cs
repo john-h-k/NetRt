@@ -25,6 +25,7 @@ namespace NetRt.Metadata
                    $"{(EhKind == EhKind.COR_ILEXCEPTION_CLAUSE_EXCEPTION ? "ClassToken" : "FilterOffset")}: {_unionField}";
         }
 
+        public bool IsFilter => EhKind == EhKind.COR_ILEXCEPTION_CLAUSE_FILTER;
         public EhKind EhKind { get; }
         public uint TryOffset { get; }
         public uint TryLength { get; }

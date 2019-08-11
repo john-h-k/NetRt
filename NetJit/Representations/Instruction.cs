@@ -9,16 +9,19 @@ namespace NetJit.Representations
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
     public readonly struct Instruction
     {
-        public Instruction(OpCode opCode, Memory<byte> operand, int fullSize, int position)
+        public Instruction(OpCode opCode, ReadOnlyMemory<byte> operand, int fullSize, int position)
         {
             OpCode = opCode;
             Operand = operand;
             FullSize = fullSize;
             Position = position;
+
+            Debug.Assert(OpCode.OperandSize == Operand.Length);
         }
 
         public OpCode OpCode { get; }
-        public Memory<byte> Operand { get; }
+        public ReadOnlyMemory<byte> Operand { get; }
+        public int OperandSize => OpCode.OperandSize;
         public int FullSize { get; }
         public int Position { get; }
 
@@ -30,27 +33,12 @@ namespace NetJit.Representations
         {
             if (index < 0) ThrowHelper.ThrowArgumentOutOfRangeException(nameof(index));
 
-            if (index > 0xFFFF)
-            {
-                if (index > 0xFFFFF)
-                {
-                    if (index > 0xFFFFFF)
-                    {
-                        if (index > 0xFFFFFFF)
-                        {
-                            return LabelTemplateLeadingChars + 8;
-                        }
+            if (index <= 0xFFFF) return LabelTemplateLeadingChars + 4;
+            if (index <= 0xFFFFF) return LabelTemplateLeadingChars + 5;
+            if (index <= 0xFFFFFF) return LabelTemplateLeadingChars + 6;
+            if (index <= 0xFFFFFFF) return LabelTemplateLeadingChars + 7;
+            return LabelTemplateLeadingChars + 8;
 
-                        return LabelTemplateLeadingChars + 7;
-                    }
-
-                    return LabelTemplateLeadingChars + 6;
-                }
-
-                return LabelTemplateLeadingChars + 5;
-            }
-
-            return LabelTemplateLeadingChars + 4;
         }
 
         public static bool TryFormatLabel(int index, Span<char> buffer, out int charsWritten)
@@ -193,9 +181,9 @@ namespace NetJit.Representations
             {
                 long operand = GetIntegralOperandIfExists();
 
-                if (OpCode.IsBranch)
+                if (OpCode.HasTarget)
                 {
-                    TryFormatLabel((int) operand + Position + FullSize + labelOffset, buffer, out newCharsWritten);
+                    TryFormatLabel((int)operand + Position + FullSize + labelOffset, buffer, out newCharsWritten);
                 }
                 else if (!operand.TryFormat(buffer, out newCharsWritten))
                 {

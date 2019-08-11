@@ -87,14 +87,15 @@ namespace NetJit.Representations
 
         public static bool operator !=(OpCode left, OpCode right) => !(left == right);
 
-        public static OpCode ReadOpCode(ref byte il)
+        [Obsolete("Dangerous")]
+        public static OpCode ReadOpCode(in byte il)
         {
             byte first = il;
             byte second;
             // 2 byte encoding
             if (first == 0xFE)
             {
-                second = Unsafe.Add(ref il, 1);
+                second = Unsafe.Add(ref Unsafe.AsRef(in il), 1);
             }
             else
             {
@@ -104,6 +105,37 @@ namespace NetJit.Representations
             }
 
             return OpCodeMap[(first, second)];
+        }
+
+        public static bool TryReadOpCode(ReadOnlySpan<byte> il, out OpCode opCode)
+        {
+            if (il.IsEmpty)
+            {
+                opCode = default;
+                return false;
+            }
+
+            byte first = il[0];
+            byte second;
+            // 2 byte encoding
+            if (first == 0xFE)
+            {
+                if (il.Length < 2)
+                {
+                    opCode = default;
+                    return false;
+                }
+                second = il[1];
+            }
+            else
+            {
+                // single byte encoding, prefix with 0xFF to get the OpCode
+                second = first;
+                first = 0xFF;
+            }
+
+            opCode = OpCodeMap[(first, second)];
+            return true;
         }
 
         // First byte being 0xFF represents only to use second byte
@@ -120,6 +152,7 @@ namespace NetJit.Representations
         public byte SecondByte { get; }
         public ControlFlowKind ControlFlowKind { get; }
 
+        public bool HasTarget => IsBranch || this == Leave || this == Leave_S;
         public bool IsBranch => FirstByte == 0xFF && (SecondByte >= 0x2b && SecondByte <= 0x45);
         public bool IsUnconditionalBranch => this == Br || this == Br_S;
         public bool IsEndOfMethod => this == Ret || this == Jmp;

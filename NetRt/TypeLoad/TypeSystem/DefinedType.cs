@@ -10,5 +10,9 @@ namespace NetRt.TypeLoad.TypeSystem
         public override MethodDef[] Methods { get; }
 
         public override bool IsObject => true;
+
+        public DefinedType(uint token) : base(token)
+        {
+        }
     }
 }

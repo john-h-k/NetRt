@@ -37,15 +37,13 @@ namespace NetRt
                 using var file = new FileStream(args[0], FileMode.Open, FileAccess.Read, FileShare.Read);
                 var mem = new MemoryStream(checked((int)file.Length));
                 file.CopyTo(mem);
-                var reader = new CliImage.CliImageReader();
-                reader.CreateFromStream(new Disposable<Stream>(mem, owned: true), args[0]);
+                var reader = new CliImage.CliImageReader(new Disposable<Stream>(mem, owned: true), args[0]);
                 var metadata = new MetadataReader(reader.Image, mem);
                 MethodDef method = metadata.ReadMethodDef(reader.Image.EntryPointToken);
                 MethodInformation methodInfo = metadata.ReadMethod(method);
                 Console.WriteLine(methodInfo);
 
                 Jit.Initialize(methodInfo);
-                Jit.JitMethod();
                 Console.WriteLine(Jit.CreateJitDump());
             }
             catch (IOException e)
@@ -92,8 +90,7 @@ namespace NetRt
         public static void PrintTypes(string name)
         {
             using var file = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.None);
-            var reader = new CliImage.CliImageReader();
-            reader.CreateFromStream(new Disposable<Stream>(file, owned: true), name);
+            var reader = new CliImage.CliImageReader(new Disposable<Stream>(file, owned: true), name);
             var metadata = new MetadataReader(reader.Image, file);
             var loader = new TypeLoader(reader.Image, file);
 

@@ -4,5 +4,9 @@
     {
         public abstract TypeInformation UnderlyingType { get; }
         public override bool IsObject => true;
+
+        protected DerivativeType(uint token) : base(token)
+        {
+        }
     }
 }

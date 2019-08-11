@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Common;
 using NetJit.Representations;
 using NetRt.Metadata;
@@ -9,24 +10,29 @@ namespace NetJit.Tools
 {
     public readonly struct IlDecompiler
     {
-        public Memory<byte> Il { get; }
-        public int Offset { get; }
+        public ReadOnlyMemory<Instruction> Instructions { get; }
 
-        public IlDecompiler(MethodInformation methodInformation)
+        public int Offset { get; }
+        public int TabsPerLine { get; }
+
+        public IlDecompiler(MethodInformation methodInformation) : this(methodInformation.Il)
         {
-            Il = methodInformation.Il;
-            Offset = 0;
         }
 
-        public IlDecompiler(Memory<byte> il, int offset)
+        public IlDecompiler(ReadOnlyMemory<byte> il, int offset = 0, int tabsPerLine = 0) : this(new InstructionReader(il).ReadAllInstructionsToArray(), offset, tabsPerLine)
         {
-            Il = il;
+        }
+
+        public IlDecompiler(ReadOnlyMemory<Instruction> instructions, int offset = 0, int tabsPerLine = 0)
+        {
+            Instructions = instructions;
             Offset = offset;
+            TabsPerLine = tabsPerLine;
         }
 
         public IlDecompiler Slice(int offset)
         {
-            return new IlDecompiler(Il, Offset + offset);
+            return new IlDecompiler(Instructions, offset);
         }
 
         public override string ToString()
@@ -34,21 +40,45 @@ namespace NetJit.Tools
             return string.Create(TryDumpIlSize(), this, (span, comp) => comp.TryDumpIl(span, out _));
         }
 
-        public bool TryDumpIl(Span<char> buffer, out int charsWritten)
+        private static void Tab(ref Span<char> buffer, int tabsPerLine, ref int charsWritten)
+        {
+            for (var j = 0; j < tabsPerLine; j++)
+            {
+                buffer[j] = '\t';
+            }
+
+            charsWritten += tabsPerLine;
+            buffer = buffer.Slice(tabsPerLine);
+        }
+
+        public bool TryDumpIl(Span<char> buffer, out int charsWritten, bool encloseInBracketsAndTab = false)
         {
             // Format each instruction as
             // IL_{byteAddressOfInstruction} {instructionAlias} {operands}
             // and then a newline
 
-            var reader = new InstructionReader(Il);
-            Instruction instr;
-
             charsWritten = 0;
-            for (var i = 0; i < Il.Length; i += instr.FullSize)
-            {
-                instr = reader.ReadInstruction();
 
-                if (!Instruction.TryFormatLabel(i + Offset, buffer, out int newCharsWritten))
+
+            if (encloseInBracketsAndTab)
+            {
+                if (buffer.IsEmpty) return false;
+                Tab(ref buffer, TabsPerLine, ref charsWritten);
+                buffer[0] = '{';
+                buffer = buffer.Slice(1);
+                charsWritten++;
+            }
+
+            int tabsPerLine = encloseInBracketsAndTab ? TabsPerLine + 1 : TabsPerLine;
+
+            for (var i = 0; i < Instructions.Length; i++)
+            {
+                if (buffer.Length < tabsPerLine) return false;
+                Tab(ref buffer, tabsPerLine, ref charsWritten);
+
+                Instruction instr = Instructions.Span[i];
+
+                if (!Instruction.TryFormatLabel(instr.Position + Offset, buffer, out int newCharsWritten))
                 {
                     charsWritten += newCharsWritten;
                     return false;
@@ -78,6 +108,15 @@ namespace NetJit.Tools
                 buffer = buffer.Slice(1);
             }
 
+            if (encloseInBracketsAndTab)
+            {
+                if (buffer.IsEmpty) return false;
+                Tab(ref buffer, tabsPerLine, ref charsWritten);
+                buffer[0] = '}';
+                buffer = buffer.Slice(1);
+                charsWritten++;
+            }
+
             return true;
         }
 
@@ -85,12 +124,9 @@ namespace NetJit.Tools
         {
             var size = 0;
 
-            var reader = new InstructionReader(Il);
-            Instruction instr;
-
-            for (var i = 0; i < Il.Length; i += instr.FullSize)
+            for (var i = 0; i < Instructions.Length; i++)
             {
-                instr = reader.ReadInstruction();
+                Instruction instr = Instructions.Span[i];
 
                 size += Instruction.TryFormatLabelSize(i);
 

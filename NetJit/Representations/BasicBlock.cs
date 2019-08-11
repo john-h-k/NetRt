@@ -15,6 +15,7 @@ namespace NetJit.Representations
     {
         public BasicBlockFlags Flags { get; set; }
         public Memory<byte> Il { get; }
+        public Memory<Instruction> Instructions { get; }
         public int Offset { get; }
         public int Length { get; }
 
@@ -70,6 +71,8 @@ namespace NetJit.Representations
 
             public bool MoveNext()
             {
+                // shut the FUCK up ReSharper. this will NOT get an NRE when used correctly
+                // ReSharper disable once PossibleNullReferenceException
                 Current = Current.Next!;
                 return Current == null;
             }
