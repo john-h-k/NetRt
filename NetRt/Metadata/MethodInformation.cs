@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using NetRt.Assemblies;
 
 namespace NetRt.Metadata
@@ -48,9 +45,9 @@ namespace NetRt.Metadata
                    $"MethodAttributes: {Flags}\n" +
                    $"MethodImplOptions: {ImplFlags}\n" +
                    $"HasLocals: {HasLocals}\n" +
-                   $"HasEh: {MethodDataSections.Length > 0 && MethodDataSections[0].ExceptionHandlingClauses.Length != 0}\n" +
+                   $"HasEh: {MethodDataSections.Length > 0 && MethodDataSections[0].ExceptionHandlingClauses.Length > 0}\n" +
                    $"{(MethodDataSections.Length > 0 ? $"MethodDataSections: \n{string.Join(separator: '\n', MethodDataSections.Select(sect => sect.ToString()))}" : string.Empty)}";
-    }
+        }
 
         public void Dispose()
         {

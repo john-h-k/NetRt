@@ -1,5 +1,7 @@
 ﻿
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace System.Runtime.CompilerServices
 {
 #nullable enable
@@ -49,7 +51,7 @@ namespace System.Runtime.CompilerServices
         [Intrinsic]
         //[NonVersionable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //[return: NotNullIfNotNull("value")]
+        [return: NotNullIfNotNull("value")]
         public static T As<T>(object? value) where T : class ?
         {
             throw null; // new PlatformNotSupportedException();

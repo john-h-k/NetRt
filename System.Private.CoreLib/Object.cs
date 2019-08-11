@@ -9,6 +9,11 @@ namespace System
 
         }
 
+        ~Object()
+        {
+
+        }
+
         // Let's not have a finalizer so no one else can override them :when:
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -36,7 +41,10 @@ namespace System
 
 
         [Intrinsic]
-        protected extern object MemberwiseClone();
+        protected object MemberwiseClone()
+        {
+            return null; // TODO
+        }
     }
         
 }
