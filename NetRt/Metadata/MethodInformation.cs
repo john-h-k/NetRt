@@ -49,7 +49,7 @@ namespace NetRt.Metadata
                    $"MethodImplOptions: {ImplFlags}\n" +
                    $"HasLocals: {HasLocals}\n" +
                    $"HasEh: {MethodDataSections.Length > 0 && MethodDataSections[0].ExceptionHandlingClauses.Length != 0}\n" +
-                   $"{(MethodDataSections.Length > 0 ? $"MethodDataSections: {string.Join(separator: ' ', MethodDataSections.Select(sect => sect.ToString()))}" : string.Empty)}";
+                   $"{(MethodDataSections.Length > 0 ? $"MethodDataSections: \n{string.Join(separator: '\n', MethodDataSections.Select(sect => sect.ToString()))}" : string.Empty)}";
     }
 
         public void Dispose()

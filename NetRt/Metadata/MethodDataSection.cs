@@ -18,7 +18,7 @@ namespace NetRt.Metadata
             $"{(IsFinalSection ? "Final section for this method" : "Has more sections after this section")}\n" +
             $"SectionKind: {Kind}\n" +
             $"DataSize: {DataSize}\n" +
-            $"{(ExceptionHandlingClauses.Length > 0 ? $"EhClauses: {string.Join(separator: ' ', ExceptionHandlingClauses.Select(eh => eh.ToString()))}" : string.Empty)}";
+            $"{(ExceptionHandlingClauses.Length > 0 ? $"EhClauses: \n{string.Join(separator: '\n', ExceptionHandlingClauses.Select(eh => eh.ToString()))}" : string.Empty)}";
 
         public bool IsThin => !Kind.HasFlag(SectionKind.CorILMethod_Sect_FatFormat);
         public bool IsFinalSection => !Kind.HasFlag(SectionKind.CorILMethod_Sect_MoreSects);
