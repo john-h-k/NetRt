@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using System.Text;
 using NetRt.Assemblies.Heaps;
 using NetRt.Common;
-using static NetRt.Assemblies.Heaps.TableHeap;
 
 #nullable enable
 
-namespace NetRt.Assemblies
+namespace NetRt.Assemblies.Image
 {
     using Rva = UInt32;
     using CodedIndex = TableHeap.CodedIndex;
@@ -298,9 +295,9 @@ namespace NetRt.Assemblies
                     heap.ValidTables = Stream.Read<long>();
                     heap.Sorted = Stream.Read<long>();
 
-                    for (var i = 0; i < TableCount; i++)
+                    for (var i = 0; i < TableHeap.TableCount; i++)
                     {
-                        if (!heap.HasTable((Table)i)) continue;
+                        if (!heap.HasTable((TableHeap.Table)i)) continue;
 
                         heap.Tables[i].Length = Stream.Read<uint>();
                     }
@@ -357,241 +354,241 @@ namespace NetRt.Assemblies
                 var heap = Image.TableHeap;
                 var tables = heap.Tables;
 
-                for (int i = 0; i < TableCount; i++)
+                for (int i = 0; i < TableHeap.TableCount; i++)
                 {
-                    var table = (Table)i;
+                    var table = (TableHeap.Table)i;
                     if (!heap.HasTable(table))
                         continue;
 
                     int size;
                     switch (table)
                     {
-                        case Table.Module:
+                        case TableHeap.Table.Module:
                             size = 2 // Generation
                                    + stridxSize // TypeName
                                    + (guididxSize * 3); // Mvid, EncId, EncBaseId
                             break;
-                        case Table.TypeRef:
+                        case TableHeap.Table.TypeRef:
                             size = GetCodedIndexSize(CodedIndex.ResolutionScope) // ResolutionScope
                                    + (stridxSize * 2); // TypeName, Namespace
                             break;
-                        case Table.TypeDef:
+                        case TableHeap.Table.TypeDef:
                             size = 4 // Flags
                                    + (stridxSize * 2) // TypeName, Namespace
                                    + GetCodedIndexSize(CodedIndex.TypeDefOrRef) // BaseType
-                                   + GetTableIndexSize(Table.Field) // FieldList
-                                   + GetTableIndexSize(Table.Method); // MethodList
+                                   + GetTableIndexSize(TableHeap.Table.Field) // FieldList
+                                   + GetTableIndexSize(TableHeap.Table.Method); // MethodList
                             break;
-                        case Table.FieldPtr:
-                            size = GetTableIndexSize(Table.Field); // Field
+                        case TableHeap.Table.FieldPtr:
+                            size = GetTableIndexSize(TableHeap.Table.Field); // Field
                             break;
-                        case Table.Field:
+                        case TableHeap.Table.Field:
                             size = 2 // Flags
                                    + stridxSize // TypeName
                                    + blobidxSize; // Signature
                             break;
-                        case Table.MethodPtr:
-                            size = GetTableIndexSize(Table.Method); // Method
+                        case TableHeap.Table.MethodPtr:
+                            size = GetTableIndexSize(TableHeap.Table.Method); // Method
                             break;
-                        case Table.Method:
+                        case TableHeap.Table.Method:
                             size = 8 // Rva 4, ImplFlags 2, Flags 2
                                    + stridxSize // TypeName
                                    + blobidxSize // Signature
-                                   + GetTableIndexSize(Table.Param); // ParamList
+                                   + GetTableIndexSize(TableHeap.Table.Param); // ParamList
                             break;
-                        case Table.ParamPtr:
-                            size = GetTableIndexSize(Table.Param); // Param
+                        case TableHeap.Table.ParamPtr:
+                            size = GetTableIndexSize(TableHeap.Table.Param); // Param
                             break;
-                        case Table.Param:
+                        case TableHeap.Table.Param:
                             size = 4 // Flags 2, Sequence 2
                                    + stridxSize; // TypeName
                             break;
-                        case Table.InterfaceImpl:
-                            size = GetTableIndexSize(Table.TypeDef) // Class
+                        case TableHeap.Table.InterfaceImpl:
+                            size = GetTableIndexSize(TableHeap.Table.TypeDef) // Class
                                    + GetCodedIndexSize(CodedIndex.TypeDefOrRef); // Interface
                             break;
-                        case Table.MemberRef:
+                        case TableHeap.Table.MemberRef:
                             size = GetCodedIndexSize(CodedIndex.MemberRefParent) // Class
                                    + stridxSize // TypeName
                                    + blobidxSize; // Signature
                             break;
-                        case Table.Constant:
+                        case TableHeap.Table.Constant:
                             size = 2 // Type
                                    + GetCodedIndexSize(CodedIndex.HasConstant) // Parent
                                    + blobidxSize; // Value
                             break;
-                        case Table.CustomAttribute:
+                        case TableHeap.Table.CustomAttribute:
                             size = GetCodedIndexSize(CodedIndex.HasCustomAttribute) // Parent
                                    + GetCodedIndexSize(CodedIndex.CustomAttributeType) // Type
                                    + blobidxSize; // Value
                             break;
-                        case Table.FieldMarshal:
+                        case TableHeap.Table.FieldMarshal:
                             size = GetCodedIndexSize(CodedIndex.HasFieldMarshal) // Parent
                                    + blobidxSize; // NativeType
                             break;
-                        case Table.DeclSecurity:
+                        case TableHeap.Table.DeclSecurity:
                             size = 2 // Action
                                    + GetCodedIndexSize(CodedIndex.HasDeclSecurity) // Parent
                                    + blobidxSize; // PermissionSet
                             break;
-                        case Table.ClassLayout:
+                        case TableHeap.Table.ClassLayout:
                             size = 6 // PackingSize 2, ClassSize 4
-                                   + GetTableIndexSize(Table.TypeDef); // Parent
+                                   + GetTableIndexSize(TableHeap.Table.TypeDef); // Parent
                             break;
-                        case Table.FieldLayout:
+                        case TableHeap.Table.FieldLayout:
                             size = 4 // Offset
-                                   + GetTableIndexSize(Table.Field); // Field
+                                   + GetTableIndexSize(TableHeap.Table.Field); // Field
                             break;
-                        case Table.StandAloneSig:
+                        case TableHeap.Table.StandAloneSig:
                             size = blobidxSize; // Signature
                             break;
-                        case Table.EventMap:
-                            size = GetTableIndexSize(Table.TypeDef) // Parent
-                                   + GetTableIndexSize(Table.Event); // EventList
+                        case TableHeap.Table.EventMap:
+                            size = GetTableIndexSize(TableHeap.Table.TypeDef) // Parent
+                                   + GetTableIndexSize(TableHeap.Table.Event); // EventList
                             break;
-                        case Table.EventPtr:
-                            size = GetTableIndexSize(Table.Event); // Event
+                        case TableHeap.Table.EventPtr:
+                            size = GetTableIndexSize(TableHeap.Table.Event); // Event
                             break;
-                        case Table.Event:
+                        case TableHeap.Table.Event:
                             size = 2 // Flags
                                    + stridxSize // TypeName
                                    + GetCodedIndexSize(CodedIndex.TypeDefOrRef); // EventType
                             break;
-                        case Table.PropertyMap:
-                            size = GetTableIndexSize(Table.TypeDef) // Parent
-                                   + GetTableIndexSize(Table.Property); // PropertyList
+                        case TableHeap.Table.PropertyMap:
+                            size = GetTableIndexSize(TableHeap.Table.TypeDef) // Parent
+                                   + GetTableIndexSize(TableHeap.Table.Property); // PropertyList
                             break;
-                        case Table.PropertyPtr:
-                            size = GetTableIndexSize(Table.Property); // Property
+                        case TableHeap.Table.PropertyPtr:
+                            size = GetTableIndexSize(TableHeap.Table.Property); // Property
                             break;
-                        case Table.Property:
+                        case TableHeap.Table.Property:
                             size = 2 // Flags
                                    + stridxSize // TypeName
                                    + blobidxSize; // Type
                             break;
-                        case Table.MethodSemantics:
+                        case TableHeap.Table.MethodSemantics:
                             size = 2 // Semantics
-                                   + GetTableIndexSize(Table.Method) // Method
+                                   + GetTableIndexSize(TableHeap.Table.Method) // Method
                                    + GetCodedIndexSize(CodedIndex.HasSemantics); // Association
                             break;
-                        case Table.MethodImpl:
-                            size = GetTableIndexSize(Table.TypeDef) // Class
+                        case TableHeap.Table.MethodImpl:
+                            size = GetTableIndexSize(TableHeap.Table.TypeDef) // Class
                                    + GetCodedIndexSize(CodedIndex.MethodDefOrRef) // MethodBody
                                    + GetCodedIndexSize(CodedIndex.MethodDefOrRef); // MethodDeclaration
                             break;
-                        case Table.ModuleRef:
+                        case TableHeap.Table.ModuleRef:
                             size = stridxSize; // TypeName
                             break;
-                        case Table.TypeSpec:
+                        case TableHeap.Table.TypeSpec:
                             size = blobidxSize; // Signature
                             break;
-                        case Table.ImplMap:
+                        case TableHeap.Table.ImplMap:
                             size = 2 // MappingFlags
                                    + GetCodedIndexSize(CodedIndex.MemberForwarded) // MemberForwarded
                                    + stridxSize // ImportName
-                                   + GetTableIndexSize(Table.ModuleRef); // ImportScope
+                                   + GetTableIndexSize(TableHeap.Table.ModuleRef); // ImportScope
                             break;
-                        case Table.FieldRva:
+                        case TableHeap.Table.FieldRva:
                             size = 4 // RVA
-                                   + GetTableIndexSize(Table.Field); // Field
+                                   + GetTableIndexSize(TableHeap.Table.Field); // Field
                             break;
-                        case Table.EncLog:
+                        case TableHeap.Table.EncLog:
                             size = 8;
                             break;
-                        case Table.EncMap:
+                        case TableHeap.Table.EncMap:
                             size = 4;
                             break;
-                        case Table.Assembly:
+                        case TableHeap.Table.Assembly:
                             size = 16 // HashAlgId 4, Version 4 * 2, Flags 4
                                    + blobidxSize // PublicKey
                                    + (stridxSize * 2); // TypeName, Culture
                             break;
-                        case Table.AssemblyProcessor:
+                        case TableHeap.Table.AssemblyProcessor:
                             size = 4; // Processor
                             break;
-                        case Table.AssemblyOS:
+                        case TableHeap.Table.AssemblyOS:
                             size = 12; // Platform 4, Version 2 * 4
                             break;
-                        case Table.AssemblyRef:
+                        case TableHeap.Table.AssemblyRef:
                             size = 12 // Version 2 * 4 + Flags 4
                                    + (blobidxSize * 2) // PublicKeyOrToken, HashValue
                                    + (stridxSize * 2); // TypeName, Culture
                             break;
-                        case Table.AssemblyRefProcessor:
+                        case TableHeap.Table.AssemblyRefProcessor:
                             size = 4 // Processor
-                                   + GetTableIndexSize(Table.AssemblyRef); // AssemblyRef
+                                   + GetTableIndexSize(TableHeap.Table.AssemblyRef); // AssemblyRef
                             break;
-                        case Table.AssemblyRefOS:
+                        case TableHeap.Table.AssemblyRefOS:
                             size = 12 // Platform 4, Version 2 * 4
-                                   + GetTableIndexSize(Table.AssemblyRef); // AssemblyRef
+                                   + GetTableIndexSize(TableHeap.Table.AssemblyRef); // AssemblyRef
                             break;
-                        case Table.File:
+                        case TableHeap.Table.File:
                             size = 4 // Flags
                                    + stridxSize // TypeName
                                    + blobidxSize; // HashValue
                             break;
-                        case Table.ExportedType:
+                        case TableHeap.Table.ExportedType:
                             size = 8 // Flags 4, TypeDefId 4
                                    + (stridxSize * 2) // TypeName, Namespace
                                    + GetCodedIndexSize(CodedIndex.Implementation); // Implementation
                             break;
-                        case Table.ManifestResource:
+                        case TableHeap.Table.ManifestResource:
                             size = 8 // Offset, Flags
                                    + stridxSize // TypeName
                                    + GetCodedIndexSize(CodedIndex.Implementation); // Implementation
                             break;
-                        case Table.NestedClass:
-                            size = GetTableIndexSize(Table.TypeDef) // NestedClass
-                                   + GetTableIndexSize(Table.TypeDef); // EnclosingClass
+                        case TableHeap.Table.NestedClass:
+                            size = GetTableIndexSize(TableHeap.Table.TypeDef) // NestedClass
+                                   + GetTableIndexSize(TableHeap.Table.TypeDef); // EnclosingClass
                             break;
-                        case Table.GenericParam:
+                        case TableHeap.Table.GenericParam:
                             size = 4 // Number, Flags
                                    + GetCodedIndexSize(CodedIndex.TypeOrMethodDef) // Owner
                                    + stridxSize; // TypeName
                             break;
-                        case Table.MethodSpec:
+                        case TableHeap.Table.MethodSpec:
                             size = GetCodedIndexSize(CodedIndex.MethodDefOrRef) // Method
                                    + blobidxSize; // Instantiation
                             break;
-                        case Table.GenericParamConstraint:
-                            size = GetTableIndexSize(Table.GenericParam) // Owner
+                        case TableHeap.Table.GenericParamConstraint:
+                            size = GetTableIndexSize(TableHeap.Table.GenericParam) // Owner
                                    + GetCodedIndexSize(CodedIndex.TypeDefOrRef); // Constraint
                             break;
-                        case Table.Document:
+                        case TableHeap.Table.Document:
                             size = blobidxSize // TypeName
                                    + guididxSize // HashAlgorithm
                                    + blobidxSize // Hash
                                    + guididxSize; // Language
                             break;
-                        case Table.MethodDebugInformation:
-                            size = GetTableIndexSize(Table.Document) // Document
+                        case TableHeap.Table.MethodDebugInformation:
+                            size = GetTableIndexSize(TableHeap.Table.Document) // Document
                                    + blobidxSize; // SequencePoints
                             break;
-                        case Table.LocalScope:
-                            size = GetTableIndexSize(Table.Method) // Method
-                                   + GetTableIndexSize(Table.ImportScope) // ImportScope
-                                   + GetTableIndexSize(Table.LocalVariable) // VariableList
-                                   + GetTableIndexSize(Table.LocalConstant) // ConstantList
+                        case TableHeap.Table.LocalScope:
+                            size = GetTableIndexSize(TableHeap.Table.Method) // Method
+                                   + GetTableIndexSize(TableHeap.Table.ImportScope) // ImportScope
+                                   + GetTableIndexSize(TableHeap.Table.LocalVariable) // VariableList
+                                   + GetTableIndexSize(TableHeap.Table.LocalConstant) // ConstantList
                                    + 4 * 2; // StartOffset, Length
                             break;
-                        case Table.LocalVariable:
+                        case TableHeap.Table.LocalVariable:
                             size = 2 // Attributes
                                    + 2 // Index
                                    + stridxSize; // TypeName
                             break;
-                        case Table.LocalConstant:
+                        case TableHeap.Table.LocalConstant:
                             size = stridxSize // TypeName
                                    + blobidxSize; // Signature
                             break;
-                        case Table.ImportScope:
-                            size = GetTableIndexSize(Table.ImportScope) // Parent
+                        case TableHeap.Table.ImportScope:
+                            size = GetTableIndexSize(TableHeap.Table.ImportScope) // Parent
                                    + blobidxSize;
                             break;
-                        case Table.StateMachineMethod:
-                            size = GetTableIndexSize(Table.Method) // MoveNextMethod
-                                   + GetTableIndexSize(Table.Method); // KickOffMethod
+                        case TableHeap.Table.StateMachineMethod:
+                            size = GetTableIndexSize(TableHeap.Table.Method) // MoveNextMethod
+                                   + GetTableIndexSize(TableHeap.Table.Method); // KickOffMethod
                             break;
-                        case Table.CustomDebugInformation:
+                        case TableHeap.Table.CustomDebugInformation:
                             size = GetCodedIndexSize(CodedIndex.HasCustomDebugInformation) // Parent
                                    + guididxSize // Kind
                                    + blobidxSize; // Value
@@ -606,7 +603,7 @@ namespace NetRt.Assemblies
                     offset += (uint)size * tables[i].Length;
                 }
 
-                int GetTableIndexSize(Table table)
+                int GetTableIndexSize(TableHeap.Table table)
                 {
                     return Image.TableHeap[table].Length < 65536 ? 2 : 4;
                 }

@@ -4,9 +4,12 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using NetRt.Assemblies;
+using NetRt.Assemblies.Image;
 using NetRt.Common;
 using NetRt.Interfaces;
 using NetRt.Metadata;
+using NetRt.Metadata.MethodData;
+using NetRt.Metadata.TableElements;
 using NetRt.TypeLoad;
 using ReflectionAssembly = System.Reflection.Assembly;
 

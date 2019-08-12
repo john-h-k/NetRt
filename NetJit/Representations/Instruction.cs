@@ -184,7 +184,7 @@ namespace NetJit.Representations
                 if (OpCode.HasTarget)
                 {
                     TryFormatLabel((int)operand + Position + FullSize + labelOffset, buffer, out newCharsWritten);
-                }
+                }   
                 else if (!operand.TryFormat(buffer, out newCharsWritten))
                 {
                     charsWritten += newCharsWritten;
@@ -195,5 +195,9 @@ namespace NetJit.Representations
             charsWritten += newCharsWritten;
             return true;
         }
+
+        public static bool operator ==(Instruction left, Instruction right) => left.OpCode == right.OpCode && left.Operand.Span.SequenceEqual(right.Operand.Span);
+
+        public static bool operator !=(Instruction left, Instruction right) => !(left == right);
     }
 }

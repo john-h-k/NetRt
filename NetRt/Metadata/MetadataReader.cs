@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Data;
 using System.Diagnostics;
-using System.Dynamic;
 using System.IO;
-using System.Linq.Expressions;
-using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using NetInterface;
+using Common;
+using NetRt.Assemblies;
+using NetRt.Assemblies.Heaps;
+using NetRt.Assemblies.Image;
 using NetRt.Common;
-using NetRt.Metadata;
-using NetRt.TypeLoad;
-using static NetRt.Assemblies.Heaps.TableHeap;
-using ExceptionHandlingClause = NetRt.Metadata.ExceptionHandlingClause;
+using NetRt.Metadata.MethodData;
+using NetRt.Metadata.TableElements;
+using ExceptionHandlingClause = NetRt.Metadata.MethodData.ExceptionHandlingClause;
 
-namespace NetRt.Assemblies
+namespace NetRt.Metadata
 {
     using Rva = UInt32;
 
@@ -27,7 +24,7 @@ namespace NetRt.Assemblies
     {
         private readonly CliImage _image;
 
-        private TableInfo GetTableInfo(Table table) => _image.TableHeap[table];
+        private TableHeap.TableInfo GetTableInfo(TableHeap.Table table) => _image.TableHeap[table];
 
         public MetadataReader(CliImage image, Stream stream) : base(stream)
         {
@@ -57,9 +54,9 @@ namespace NetRt.Assemblies
             throw new ArgumentOutOfRangeException(nameof(rva));
         }
 
-        public void GotoTable(Table table)
+        public void GotoTable(TableHeap.Table table)
         {
-            TableInfo tableInfo = _image.TableHeap[table];
+            TableHeap.TableInfo tableInfo = _image.TableHeap[table];
 
             BaseStream.Position = TableStart + tableInfo.Offset;
         }
@@ -71,9 +68,9 @@ namespace NetRt.Assemblies
             BaseStream.Position = RvaToFileAddress(rva);
         }
 
-        public void GotoTable(Table table, Rva row)
+        public void GotoTable(TableHeap.Table table, Rva row)
         {
-            TableInfo tableInfo = _image.TableHeap[table];
+            TableHeap.TableInfo tableInfo = _image.TableHeap[table];
 
             BaseStream.Position = TableStart + (tableInfo.Offset + (tableInfo.RowSize * (row - 1)));
         }
@@ -98,25 +95,25 @@ namespace NetRt.Assemblies
 
         public uint LastField(TypeDef type)
         {
-            if (type.TypeIndex == _image.TableHeap[Table.TypeDef].Length)
-                return _image.TableHeap[Table.Field].Length;
+            if (type.TypeIndex == _image.TableHeap[TableHeap.Table.TypeDef].Length)
+                return _image.TableHeap[TableHeap.Table.Field].Length;
 
             return ReadTypeDef(type.TypeIndex + 1U).FieldList - 1U;
         }
 
         public uint LastMethod(TypeDef type)
         {
-            if (type.TypeIndex == _image.TableHeap[Table.TypeDef].Length)
-                return _image.TableHeap[Table.Method].Length;
+            if (type.TypeIndex == _image.TableHeap[TableHeap.Table.TypeDef].Length)
+                return _image.TableHeap[TableHeap.Table.Method].Length;
 
             return ReadTypeDef(type.TypeIndex + 1U).MethodList - 1U;
         }
 
         public MethodDef ReadMethodDef(Rva methodToken)
         {
-            GotoTable(Table.Method, TokenToRid(methodToken));
+            GotoTable(TableHeap.Table.Method, TokenToRid(methodToken));
 
-            var rva = BaseStream.Read<Rva>();
+            var rva = ReadUInt32();
             var implFlags = (MethodImplOptions)ReadUInt16();
             var flags = (MethodAttributes)ReadUInt16();
             uint nameIndex = ReadStrIndex();
@@ -130,7 +127,7 @@ namespace NetRt.Assemblies
         public TypeDef ReadTypeDef(Rva typeToken)
         {
             uint rid = TokenToRid(typeToken);
-            GotoTable(Table.TypeDef, rid);
+            GotoTable(TableHeap.Table.TypeDef, rid);
 
             var flags = (TypeAttributes)ReadUInt32();
             string typeName = _image.StringHeap.GetString(ReadStrIndex());
@@ -144,7 +141,7 @@ namespace NetRt.Assemblies
 
         public TypeRef ReadTypeRef(Rva refToken)
         {
-            GotoTable(Table.TypeRef, TokenToRid(refToken));
+            GotoTable(TableHeap.Table.TypeRef, TokenToRid(refToken));
 
             var resolutionScope = ReadUInt16();
             string typeName = _image.StringHeap.GetString(ReadStrIndex());
@@ -168,8 +165,10 @@ namespace NetRt.Assemblies
             MethodHeader header = ReadMethodHeader();
 
             int size = (int)header.CodeSize;
+
             IMemoryOwner<byte> il = MemoryPool<byte>.Shared.Rent(size);
             Read(il.Memory.Span.Slice(0, size));
+
             BaseStream.Position = (BaseStream.Position + 3) & ~3;
 
             var sections = new List<MethodDataSection>();
@@ -183,8 +182,42 @@ namespace NetRt.Assemblies
                 }
             }
 
+            var @params = ReadMethodDefSig();
 
             return new MethodInformation(methodToken, header, il, sections.ToArray());
+        }
+
+        private MethodDefSig ReadMethodDefSig()
+        {
+            var flags = (MethodDefSigFlags)ReadByte();
+            bool hasThis = flags.HasFlag(MethodDefSigFlags.HasThis);
+            bool explicitThis = flags.HasFlag(MethodDefSigFlags.ExplicitThis);
+            var callingConv = (ManagedCallingConv)((uint)flags & 0b11111);
+
+            uint genericParamCount = 0;
+            if (flags.HasFlag(MethodDefSigFlags.Generic))
+            {
+                Span<byte> b = stackalloc byte[4];
+                Read(b);
+                genericParamCount = Utils.ReadVarLenUInt32(ref b);
+            }
+
+            Span<byte> p = stackalloc byte[4];
+            Read(p);
+            uint paramCount = Utils.ReadVarLenUInt32(ref p);
+
+            var elemType = (ELEMENT_TYPE)ReadByte();
+            CustomMod? modifier = null;
+            if (elemType == ELEMENT_TYPE.ELEMENT_TYPE_CMOD_OPT || elemType == ELEMENT_TYPE.ELEMENT_TYPE_CMOD_REQD)
+            {
+                modifier = new CustomMod((CustomModType)elemType, ReadUInt32());
+                elemType = (ELEMENT_TYPE)ReadByte();
+            }
+
+            if (elemType == ELEMENT_TYPE.ELEMENT_TYPE_BYREF)
+            {
+
+            }
         }
 
         private MethodHeader ReadMethodHeader()
@@ -225,16 +258,6 @@ namespace NetRt.Assemblies
             uint dataSize = isFat ? Read3Bytes() : ReadByte();
 
             if (!isFat) _ = /* Reserved */ ReadUInt16();
-
-            //var kindAndSize = ReadUInt32();
-
-            //const uint kindMask = 0b_0000_0000__0000_0000__0000_0000__1111_1111;
-            //const uint sizeMask = ~kindMask;
-            //const uint thinSizeMask = 0b_0000_0000__0000_0000__1111_1111__0000_0000;
-
-            //var kind = (SectionKind)(kindAndSize & kindMask);
-            //bool isFat = kind.HasFlag(SectionKind.CorILMethod_Sect_FatFormat);
-            //uint dataSize = isFat ? kindAndSize & sizeMask : kindAndSize & thinSizeMask;
 
             // Can dataSize be 0? if so - bad
             uint numClauses = isFat ? (dataSize - 4) / 24 : (dataSize - 4) / 12;
@@ -302,7 +325,7 @@ namespace NetRt.Assemblies
             return new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset);
         }
 
-        public MethodInformation ReadMethodSpec(Rva token, out Table tokenTable)
+        public MethodInformation ReadMethodSpec(Rva token, out TableHeap.Table tokenTable)
         {
             const int memberRef = 0;
             const int methodDef = 1;
@@ -310,26 +333,26 @@ namespace NetRt.Assemblies
             uint index = token & 1;
             if (index == methodDef)
             {
-                tokenTable = Table.Method;
+                tokenTable = TableHeap.Table.Method;
                 return ReadMethod(ReadMethodDef(token & ~1U));
             }
             else
             {
-                tokenTable = Table.MemberRef;
+                tokenTable = TableHeap.Table.MemberRef;
 
             }
         }
 
         public TypeSpec ReadTypeSpec(Rva specToken)
         {
-            GotoTable(Table.TypeSpec, TokenToRid(specToken));
+            GotoTable(TableHeap.Table.TypeSpec, TokenToRid(specToken));
 
             return new TypeSpec(ReadBlobIndex());
         }
 
         public Field ReadField(Rva fieldToken)
         {
-            GotoTable(Table.Field, TokenToRid(fieldToken));
+            GotoTable(TableHeap.Table.Field, TokenToRid(fieldToken));
 
             var flags = (FieldAttributes)ReadUInt16();
             string name = _image.StringHeap.GetString(ReadStrIndex());
@@ -340,7 +363,7 @@ namespace NetRt.Assemblies
 
         public IEnumerable<TypeDef> EnumerateTypeDefs()
         {
-            for (var i = 0U; i < GetTableInfo(Table.TypeDef).Length; i++)
+            for (var i = 0U; i < GetTableInfo(TableHeap.Table.TypeDef).Length; i++)
             {
                 yield return ReadTypeDef(i + 1);
             }
@@ -348,7 +371,7 @@ namespace NetRt.Assemblies
 
         public IEnumerable<TypeRef> EnumerateTypeRefs()
         {
-            for (var i = 0U; i < GetTableInfo(Table.TypeRef).Length; i++)
+            for (var i = 0U; i < GetTableInfo(TableHeap.Table.TypeRef).Length; i++)
             {
                 yield return ReadTypeRef(i + 1);
             }
@@ -356,7 +379,7 @@ namespace NetRt.Assemblies
 
         public IEnumerable<TypeSpec> EnumerateTypeSpecs()
         {
-            for (var i = 0U; i < GetTableInfo(Table.TypeSpec).Length; i++)
+            for (var i = 0U; i < GetTableInfo(TableHeap.Table.TypeSpec).Length; i++)
             {
                 yield return ReadTypeSpec(i + 1);
             }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using NetInterface;
 using NetRt.Assemblies;
 using NetRt.Metadata;
+using NetRt.Metadata.TableElements;
 
 namespace NetRt.TypeLoad.TypeSystem
 {

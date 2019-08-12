@@ -1,5 +1,5 @@
-﻿using NetInterface;
-using NetRt.Assemblies;
+﻿using NetRt.Assemblies;
+using NetRt.Metadata.TableElements;
 
 namespace NetRt.TypeLoad.TypeSystem
 {

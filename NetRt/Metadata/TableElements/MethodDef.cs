@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace NetRt.Assemblies
+namespace NetRt.Metadata.TableElements
 {
     using Rva = UInt32;
     public readonly struct MethodDef

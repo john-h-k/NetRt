@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NetRt.TypeLoad
+namespace NetRt.Metadata.TableElements
 {
     using Rva = UInt32;
 

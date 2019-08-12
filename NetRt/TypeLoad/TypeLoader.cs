@@ -4,6 +4,9 @@ using System.Reflection;
 using System.Collections.Generic;
 using NetRt.Assemblies;
 using NetRt.Assemblies.Heaps;
+using NetRt.Assemblies.Image;
+using NetRt.Metadata;
+using NetRt.Metadata.TableElements;
 using NetRt.TypeLoad.TypeSystem;
 using PAL;
 

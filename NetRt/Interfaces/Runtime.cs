@@ -1,5 +1,5 @@
-﻿using NetInterface;
-using NetRt.Metadata;
+﻿using NetRt.Metadata;
+using NetRt.Metadata.MethodData;
 using NetRt.TypeLoad.TypeSystem;
 
 namespace NetRt.Interfaces

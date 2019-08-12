@@ -1,7 +1,7 @@
 ﻿using System;
-using NetInterface;
 using NetRt.Assemblies;
 using NetRt.Metadata;
+using NetRt.Metadata.MethodData;
 
 namespace NetRt.Interfaces
 {

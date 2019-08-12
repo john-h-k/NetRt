@@ -2,7 +2,7 @@
 using System.IO;
 using NetRt.Common;
 
-namespace NetRt.Assemblies
+namespace NetRt.Assemblies.Image
 {
     using Rva = UInt32;
 

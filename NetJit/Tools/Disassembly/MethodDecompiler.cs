@@ -9,7 +9,8 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Common;
 using NetRt.Metadata;
-using ExceptionHandlingClause = NetRt.Metadata.ExceptionHandlingClause;
+using NetRt.Metadata.MethodData;
+using ExceptionHandlingClause = NetRt.Metadata.MethodData.ExceptionHandlingClause;
 
 // ReSharper disable StringLiteralTypo
 

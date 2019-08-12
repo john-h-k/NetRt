@@ -1,4 +1,4 @@
-﻿namespace NetRt.Assemblies
+﻿namespace NetRt.Assemblies.Image
 {
     public enum ModuleType
     {

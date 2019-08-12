@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
-using NetInterface;
 using NetRt.Assemblies;
+using NetRt.Metadata.TableElements;
 
 namespace NetRt.TypeLoad.TypeSystem
 {

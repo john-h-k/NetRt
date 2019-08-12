@@ -1,4 +1,4 @@
-﻿namespace NetRt.Metadata
+﻿namespace NetRt.Metadata.TableElements
 {
     public readonly struct MemberRef
     {

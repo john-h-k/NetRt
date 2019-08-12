@@ -1,4 +1,4 @@
-﻿namespace NetRt.Metadata
+﻿namespace NetRt.Metadata.MethodData
 {
     public readonly struct MethodHeader
     {

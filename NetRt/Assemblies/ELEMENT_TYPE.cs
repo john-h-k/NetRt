@@ -2,9 +2,13 @@
 
 namespace NetRt.Assemblies
 {
+    // "Argh! What is this naming?"
+    //      -- you, approx. 5 seconds into seeing this file
+    // It maintains symmetry with the ECMA335 ELEMENT_TYPE enumeration to keep things clear
+
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     [SuppressMessage("ReSharper", "IdentifierTypo")]
-    public enum ELEMENT_TYPE
+    public enum ELEMENT_TYPE : byte
     {
         ELEMENT_TYPE_END = 0x0,
         ELEMENT_TYPE_VOID = 0x1,

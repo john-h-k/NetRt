@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using NetInterface;
 using NetRt.Assemblies;
+using NetRt.Metadata.TableElements;
 
 namespace NetRt.TypeLoad.TypeSystem
 {

@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using NetRt.Assemblies;
+using NetRt.Metadata.TableElements;
+using NetRt.TypeLoad.TypeSystem;
 
-namespace NetRt.Metadata
+namespace NetRt.Metadata.MethodData
 {
     public class MethodInformation : IDisposable
     {
@@ -16,8 +17,12 @@ namespace NetRt.Metadata
         {
             RawMethodDef = rawMethodDef;
             Header = methodHeader;
-            _ownedIl = il;
             MethodDataSections = methodDataSections;
+
+
+            _ownedIl = il;
+            Il = _ownedIl.Memory.Slice(0, checked((int)Header.CodeSize)); // Adjust
+
 
             TokenToMethodInformation[rawMethodDef.Rva] = this;
         }
@@ -27,17 +32,19 @@ namespace NetRt.Metadata
         public uint Rva => RawMethodDef.Rva;
         public MethodAttributes Flags => RawMethodDef.Flags;
         public MethodImplOptions ImplFlags => RawMethodDef.ImplFlags;
-        public ushort ParamList => RawMethodDef.ParamList;
+        public ParamInformation[] Params { get; }
+        public ParamInformation Return { get; }
         public uint Signature => RawMethodDef.Signature;
         public string Name => RawMethodDef.Name;
         public bool HasBody => Rva != 0;
         public MethodHeader Header { get; }
-        public Memory<byte> Il => _ownedIl.Memory.Slice(0, checked((int)Header.CodeSize));
+        public Memory<byte> Il { get; }
 
         private readonly IMemoryOwner<byte> _ownedIl;
         public MethodDataSection[] MethodDataSections { get; set; }
         public bool HasLocals => Header.LocalVarSigToken != 0;
 
+        public TypeInformation EnclosingType { get; }
         public override string ToString()
         {
             return $"Method {Name} [{(HasBody ? "HasBody" : "NoImpl")}]:\n" +

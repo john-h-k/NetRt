@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace NetRt.Metadata
+namespace NetRt.Metadata.MethodData
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum MethodHeaderFlags : byte

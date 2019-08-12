@@ -1,7 +1,7 @@
 ﻿using System;
 using NetRt.Assemblies.Heaps;
 
-namespace NetRt.Assemblies
+namespace NetRt.Assemblies.Image
 {
 
 #nullable enable

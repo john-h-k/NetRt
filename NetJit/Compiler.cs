@@ -5,12 +5,12 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Common;
-using NetInterface;
 using NetJit.Representations;
 using NetJit.Tools;
 using NetRt.Assemblies;
 using NetRt.Interfaces;
 using NetRt.Metadata;
+using NetRt.Metadata.MethodData;
 using NetRt.TypeLoad.TypeSystem;
 
 namespace NetJit

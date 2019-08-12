@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NetInterface
+﻿namespace NetRt.Interfaces
 {
     public abstract unsafe class GarbageCollector
     {

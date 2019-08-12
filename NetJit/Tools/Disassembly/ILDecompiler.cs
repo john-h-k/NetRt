@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Common;
 using NetJit.Representations;
 using NetRt.Metadata;
+using NetRt.Metadata.MethodData;
 
 #nullable enable
 

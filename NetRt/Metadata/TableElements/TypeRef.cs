@@ -1,4 +1,4 @@
-﻿namespace NetRt.TypeLoad
+﻿namespace NetRt.Metadata.TableElements
 {
     public readonly struct TypeRef
     {

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace NetRt.Assemblies
+namespace NetRt.Assemblies.Image
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum Subsystem : ushort

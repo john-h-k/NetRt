@@ -9,7 +9,7 @@ using static NetJit.Representations.OpCodesDef;
 
 namespace NetJit.Representations
 {
-    [DebuggerDisplay("{" + nameof(ToString) + "()}")]
+    [DebuggerDisplay("{" + nameof(Alias) + "()}")]
     public readonly struct OpCode
     {
         public override string ToString() => Alias;

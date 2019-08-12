@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace NetRt.TypeLoad
+namespace NetRt.Metadata.TableElements
 {
     public readonly struct Field
     {
