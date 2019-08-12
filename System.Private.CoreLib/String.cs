@@ -37,20 +37,24 @@ namespace System
 
         public ref readonly char GetPinnableReference() => ref _firstChar;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref readonly char RefChars(int index)
+        {
+            if ((uint)index > (uint)_stringLength)
+            {
+                ThrowHelper.ThrowArgumentOutOfRangeException("Index was outside the bounds of the array.");
+            }
+
+            return ref Unsafe.Add(ref _firstChar, index);
+        }
+
         [IndexerName("Chars")]
         public char this[int index]
         {
-            [Intrinsic]
-            get
-            {
-                if ((uint)index > (uint)_stringLength)
-                {
-                    throw new ArgumentOutOfRangeException("Index was outside the bounds of the array.");
-                }
-
-                return Unsafe.Add(ref _firstChar, index);
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            [Intrinsic] get => RefChars(index);
         }
+
         public static bool operator ==(string left, string right)
         {
             if (ReferenceEquals(left, right)) return true;
@@ -61,7 +65,6 @@ namespace System
             fixed (char* l = left)
             fixed (char* r = right)
             {
-
                 return memcmp(l, r, (IntPtr)left.Length) == 0;
             }
         }

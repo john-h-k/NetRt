@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -25,7 +26,6 @@ namespace NetRt.Assemblies
     public sealed class MetadataReader : BinaryReader
     {
         private readonly CliImage _image;
-        private readonly Stream _stream;
 
         private TableInfo GetTableInfo(Table table) => _image.TableHeap[table];
 
@@ -34,7 +34,6 @@ namespace NetRt.Assemblies
             if (image is null) throw new ArgumentNullException(nameof(image));
             if (stream is null) throw new ArgumentNullException(nameof(stream));
             _image = image;
-            _stream = stream;
         }
 
         public static Rva TokenToRid(Rva rva) => rva & 0x00ffffff;
@@ -62,39 +61,39 @@ namespace NetRt.Assemblies
         {
             TableInfo tableInfo = _image.TableHeap[table];
 
-            _stream.Position = TableStart + tableInfo.Offset;
+            BaseStream.Position = TableStart + tableInfo.Offset;
         }
 
         private uint TableStart => _image.TableHeapOffset + _image.MetadataSection.PointerToRawData;
 
         public void GotoRva(Rva rva)
         {
-            _stream.Position = RvaToFileAddress(rva);
+            BaseStream.Position = RvaToFileAddress(rva);
         }
 
         public void GotoTable(Table table, Rva row)
         {
             TableInfo tableInfo = _image.TableHeap[table];
 
-            _stream.Position = TableStart + (tableInfo.Offset + (tableInfo.RowSize * (row - 1)));
+            BaseStream.Position = TableStart + (tableInfo.Offset + (tableInfo.RowSize * (row - 1)));
         }
 
         private uint ReadStrIndex()
         {
             Debug.Assert(_image.StringHeap.IndexSize == 4 || _image.StringHeap.IndexSize == 2);
-            return _image.StringHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
+            return _image.StringHeap.IndexSize == 4 ? ReadUInt32() : ReadUInt16();
         }
 
         private uint ReadBlobIndex()
         {
             Debug.Assert(_image.BlobHeap.IndexSize == 4 || _image.BlobHeap.IndexSize == 2);
-            return _image.BlobHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
+            return _image.BlobHeap.IndexSize == 4 ? ReadUInt32() : ReadUInt16();
         }
 
         private uint ReadGuidIndex()
         {
             Debug.Assert(_image.GuidHeap.IndexSize == 4 || _image.GuidHeap.IndexSize == 2);
-            return _image.GuidHeap.IndexSize == 4 ? _stream.Read<uint>() : _stream.Read<ushort>();
+            return _image.GuidHeap.IndexSize == 4 ? ReadUInt32() : ReadUInt16();
         }
 
         public uint LastField(TypeDef type)
@@ -117,13 +116,13 @@ namespace NetRt.Assemblies
         {
             GotoTable(Table.Method, TokenToRid(methodToken));
 
-            var rva = _stream.Read<Rva>();
-            var implFlags = (MethodImplOptions)_stream.Read<ushort>();
-            var flags = (MethodAttributes)_stream.Read<ushort>();
+            var rva = BaseStream.Read<Rva>();
+            var implFlags = (MethodImplOptions)ReadUInt16();
+            var flags = (MethodAttributes)ReadUInt16();
             uint nameIndex = ReadStrIndex();
             string name = _image.StringHeap.GetString(nameIndex);
             uint signature = ReadBlobIndex();
-            var paramList = _stream.Read<ushort>();
+            var paramList = ReadUInt16();
 
             return new MethodDef(rva, implFlags, flags, name, signature, paramList);
         }
@@ -133,12 +132,12 @@ namespace NetRt.Assemblies
             uint rid = TokenToRid(typeToken);
             GotoTable(Table.TypeDef, rid);
 
-            var flags = (TypeAttributes)_stream.Read<uint>();
+            var flags = (TypeAttributes)ReadUInt32();
             string typeName = _image.StringHeap.GetString(ReadStrIndex());
             string typeNamespace = _image.StringHeap.GetString(ReadStrIndex());
-            var extends = _stream.Read<ushort>();
-            var fieldList = _stream.Read<ushort>();
-            var methodList = _stream.Read<ushort>();
+            var extends = ReadUInt16();
+            var fieldList = ReadUInt16();
+            var methodList = ReadUInt16();
 
             return new TypeDef(flags, typeName, typeNamespace, extends, fieldList, methodList, rid);
         }
@@ -147,7 +146,7 @@ namespace NetRt.Assemblies
         {
             GotoTable(Table.TypeRef, TokenToRid(refToken));
 
-            var resolutionScope = _stream.Read<ushort>();
+            var resolutionScope = ReadUInt16();
             string typeName = _image.StringHeap.GetString(ReadStrIndex());
             string typeNamespace = _image.StringHeap.GetString(ReadStrIndex());
 
@@ -161,11 +160,6 @@ namespace NetRt.Assemblies
             return MemoryMarshal.Read<uint>(buff);
         }
 
-        public T Read<T>() where T : unmanaged
-        {
-            return _stream.Read<T>();
-        }
-
         // TODO cache methods by RVA etc
 
         public MethodInformation ReadMethod(MethodDef methodToken)
@@ -176,7 +170,7 @@ namespace NetRt.Assemblies
             int size = (int)header.CodeSize;
             IMemoryOwner<byte> il = MemoryPool<byte>.Shared.Rent(size);
             Read(il.Memory.Span.Slice(0, size));
-            _stream.Position = (_stream.Position + 3) & ~3;
+            BaseStream.Position = (BaseStream.Position + 3) & ~3;
 
             var sections = new List<MethodDataSection>();
             if (header.Flags.HasFlag(MethodHeaderFlags.CorILMethod_MoreSects))
@@ -208,17 +202,17 @@ namespace NetRt.Assemblies
             }
             else
             {
-                _stream.Position--;
-                var flagsAndSize = Read<ushort>();
+                BaseStream.Position--;
+                var flagsAndSize = ReadUInt16();
                 const ushort fatFlagsMask = 0b_0000_1111_1111_1111;
                 const ushort fatSizeMask = 0b_1111_0000_0000_0000;
 
                 flags = (MethodHeaderFlags)(flagsAndSize & fatFlagsMask);
                 uint size = (uint)flagsAndSize & fatSizeMask;
 
-                var maxStack = Read<ushort>();
-                var codeSize = Read<uint>();
-                var localVarSigTok = Read<uint>();
+                var maxStack = ReadUInt16();
+                var codeSize = ReadUInt32();
+                var localVarSigTok = ReadUInt32();
 
                 return new MethodHeader(flags, (byte)(size * 3), maxStack, codeSize, localVarSigTok);
             }
@@ -226,13 +220,13 @@ namespace NetRt.Assemblies
 
         private MethodDataSection ReadMethodDataSection()
         {
-            var kind = Read<SectionKind>();
+            var kind = (SectionKind)ReadByte();
             bool isFat = kind.HasFlag(SectionKind.CorILMethod_Sect_FatFormat);
             uint dataSize = isFat ? Read3Bytes() : ReadByte();
 
-            if (!isFat) _ = /* Reserved */ Read<ushort>();
+            if (!isFat) _ = /* Reserved */ ReadUInt16();
 
-            //var kindAndSize = Read<uint>();
+            //var kindAndSize = ReadUInt32();
 
             //const uint kindMask = 0b_0000_0000__0000_0000__0000_0000__1111_1111;
             //const uint sizeMask = ~kindMask;
@@ -286,26 +280,44 @@ namespace NetRt.Assemblies
 
         private ExceptionHandlingClause ReadFatEhClause()
         {
-            var ehKind = (EhKind)Read<uint>();
-            var tryOffset = Read<uint>();
-            var tryLength = Read<uint>();
-            var handlerOffset = Read<uint>();
-            var handlerLength = Read<uint>();
-            var classTokenOrFilterOffset = Read<uint>();
+            var ehKind = (EhKind)ReadUInt32();
+            var tryOffset = ReadUInt32();
+            var tryLength = ReadUInt32();
+            var handlerOffset = ReadUInt32();
+            var handlerLength = ReadUInt32();
+            var classTokenOrFilterOffset = ReadUInt32();
 
             return new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset);
         }
 
         private ExceptionHandlingClause ReadThinEhClause()
         {
-            var ehKind = (EhKind)Read<ushort>();
-            var tryOffset = Read<ushort>();
-            var tryLength = Read<byte>();
-            var handlerOffset = Read<ushort>();
-            var handlerLength = Read<byte>();
-            var classTokenOrFilterOffset = Read<uint>();
+            var ehKind = (EhKind)ReadUInt16();
+            var tryOffset = ReadUInt16();
+            var tryLength = ReadByte();
+            var handlerOffset = ReadUInt16();
+            var handlerLength = ReadByte();
+            var classTokenOrFilterOffset = ReadUInt32();
 
             return new ExceptionHandlingClause(ehKind, tryOffset, tryLength, handlerOffset, handlerLength, classTokenOrFilterOffset);
+        }
+
+        public MethodInformation ReadMethodSpec(Rva token, out Table tokenTable)
+        {
+            const int memberRef = 0;
+            const int methodDef = 1;
+
+            uint index = token & 1;
+            if (index == methodDef)
+            {
+                tokenTable = Table.Method;
+                return ReadMethod(ReadMethodDef(token & ~1U));
+            }
+            else
+            {
+                tokenTable = Table.MemberRef;
+
+            }
         }
 
         public TypeSpec ReadTypeSpec(Rva specToken)
@@ -319,7 +331,7 @@ namespace NetRt.Assemblies
         {
             GotoTable(Table.Field, TokenToRid(fieldToken));
 
-            var flags = (FieldAttributes)_stream.Read<ushort>();
+            var flags = (FieldAttributes)ReadUInt16();
             string name = _image.StringHeap.GetString(ReadStrIndex());
             uint signature = ReadBlobIndex();
 

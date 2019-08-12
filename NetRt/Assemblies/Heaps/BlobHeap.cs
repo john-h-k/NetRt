@@ -1,5 +1,7 @@
 ﻿using System;
+using Common;
 using NetRt.Common;
+using ThrowHelper = NetRt.Common.ThrowHelper;
 
 namespace NetRt.Assemblies.Heaps
 {
@@ -22,7 +24,7 @@ namespace NetRt.Assemblies.Heaps
                 return Array.Empty<byte>();
 
             Span<byte> span = Data.Span.Slice((int)index);
-            int len = Utils.ReadVarLenUInt32(ref span);
+            int len = (int)Utils.ReadVarLenUInt32(ref span);
 
             if (len > Data.Length - index)
                 ThrowHelper.ThrowInvalidOperationException(NetRtResources.GetResource("DataLargerThanHeap"));

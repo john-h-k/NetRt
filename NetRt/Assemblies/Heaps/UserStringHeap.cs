@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using NetRt.Common;
+using Common;
+using ThrowHelper = NetRt.Common.ThrowHelper;
 
 namespace NetRt.Assemblies.Heaps
 {
@@ -25,10 +26,12 @@ namespace NetRt.Assemblies.Heaps
 
             Span<byte> span = Data.Span.Slice((int) index);
 
-            int len = Utils.ReadVarLenUInt32(ref span);
+            int len = (int)Utils.ReadVarLenUInt32(ref span);
             len &= ~1;
 
-            return MemoryMarshal.Cast<byte, char>(span.Slice(0, len)).ToString();
+            string s = MemoryMarshal.Cast<byte, char>(span.Slice(0, len)).ToString();
+            _cache[index] = s;
+            return s;
         }
     }
 }
